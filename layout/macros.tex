@@ -61,7 +61,12 @@
 % registration pass it records the ID and name; during normal rendering it typesets the body.
 \newcommand{\CharacterSheet}[4]{%
   \ifMMRegistrationPass
-    \MMDeclareNamedEntity{character}{#1}{#3}{characterCount}%
+    % A character without a name is referenced by its title.
+    \if\relax\detokenize{#3}\relax
+      \MMDeclareNamedEntity{character}{#1}{#2}{characterCount}%
+    \else
+      \MMDeclareNamedEntity{character}{#1}{#3}{characterCount}%
+    \fi
   \else
     \subsubsection{#2: \Character{#1}}
     \label{character:#1}%
