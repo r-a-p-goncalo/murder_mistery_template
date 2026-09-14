@@ -58,7 +58,7 @@
 }
 
 % Each sheet command is its entity's single source of truth. During the silent
-% registration pass it records the ID and name; during normal rendering it typesets the body.
+% registration pass it records the ID and display name; during normal rendering it typesets the body.
 \newcommand{\CharacterSheet}[4]{%
   \ifMMRegistrationPass
     % A character without a name is referenced by its title.
@@ -107,5 +107,5 @@
   \subsection{Entity summary}
   There are \arabic{characterCount} characters.\par
   There are \arabic{clueCount} clues.\par
-  There are \arabic{mysteryCount} misteries.\par
+  There are \arabic{mysteryCount} mysteries.\par
 }
