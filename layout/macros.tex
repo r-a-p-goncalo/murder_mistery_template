@@ -1,0 +1,106 @@
+% Generic entity registry and rendering helpers.
+\newcounter{characterCount}
+\newcounter{spaceCount}
+\newcounter{clueCount}
+\newcounter{mysteryCount}
+\newif\ifMMRegistrationPass
+\MMRegistrationPassfalse
+
+\makeatletter
+\newcommand{\MMDeclareNamedEntity}[4]{%
+  \@ifundefined{mm@#1@#2}{%
+    \expandafter\gdef\csname mm@#1@#2\endcsname{#3}%
+    \stepcounter{#4}%
+  }{%
+    \PackageError{murder-mystery}{Duplicate #1 identifier `#2'}%
+      {Each entity identifier must be declared only once in its own content file.}%
+  }%
+}
+
+\newcommand{\MMNamedEntity}[2]{%
+  \@ifundefined{mm@#1@#2}{%
+    \PackageError{murder-mystery}{Unknown #1 identifier `#2'}%
+      {Declare this identifier in its entity file and add that file to the matching index.tex.}%
+    \textbf{[unknown #1: #2]}%
+  }{%
+    \csname mm@#1@#2\endcsname%
+  }%
+}
+\makeatother
+
+% Raw names are useful in headings; references apply the styles configured in config/game.tex.
+\newcommand{\CharacterName}[1]{\MMNamedEntity{character}{#1}}
+\newcommand{\SpaceName}[1]{\MMNamedEntity{space}{#1}}
+\newcommand{\ClueName}[1]{\MMNamedEntity{clue}{#1}}
+
+\newcommand{\Character}[1]{\CharacterReferenceStyle{\CharacterName{#1}}}
+\newcommand{\Space}[1]{\SpaceReferenceStyle{\SpaceName{#1}}}
+\newcommand{\Clue}[1]{\ClueReferenceStyle{\ClueName{#1}}}
+
+\newcommand{\GameTitlePage}{%
+  \begin{titlepage}
+    \centering
+    \vspace*{0.20\textheight}
+    {\color{wine}\rule{0.7\textwidth}{1.2pt}\par}
+    \vspace{1.5em}
+    {\Huge\bfseries\color{ink}\GameTitle\par}
+    \vspace{0.65em}
+    {\Large\itshape \GameTagline\par}
+    \vspace{1.5em}
+    {\color{wine}\rule{0.7\textwidth}{1.2pt}\par}
+    \vfill
+    \begin{minipage}{0.72\textwidth}
+      \centering\color{ink}\GamePremise
+    \end{minipage}\par
+    \vfill
+    \GameDate\quad\textbullet\quad\GameLocation
+  \end{titlepage}%
+}
+
+% Each sheet command is its entity's single source of truth. During the silent
+% registration pass it records the ID and name; during normal rendering it typesets the body.
+\newcommand{\CharacterSheet}[4]{%
+  \ifMMRegistrationPass
+    \MMDeclareNamedEntity{character}{#1}{#3}{characterCount}%
+  \else
+    \subsubsection{#2: \Character{#1}}
+    \label{character:#1}%
+    #4%
+  \fi
+}
+
+\newcommand{\SpaceSheet}[3]{%
+  \ifMMRegistrationPass
+    \MMDeclareNamedEntity{space}{#1}{#2}{spaceCount}%
+  \else
+    \subsubsection{\Space{#1}}
+    \label{space:#1}%
+    #3%
+  \fi
+}
+
+\newcommand{\ClueSheet}[3]{%
+  \ifMMRegistrationPass
+    \MMDeclareNamedEntity{clue}{#1}{#2}{clueCount}%
+  \else
+    \subsubsection{\Clue{#1}}
+    \label{clue:#1}%
+    #3%
+  \fi
+}
+
+\newcommand{\Mystery}[2]{%
+  \ifMMRegistrationPass
+    \stepcounter{mysteryCount}%
+  \else
+    \subsubsection{#1}%
+    #2%
+  \fi
+}
+
+\newcommand{\RelationshipSummary}{%
+  \subsection{Entity summary}
+  There are \arabic{characterCount} characters.\par
+  There are \arabic{clueCount} clues.\par
+  There are \arabic{mysteryCount} misteries.\par
+}

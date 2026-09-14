@@ -1,0 +1,30 @@
+% Compile this root file from the repository root.
+\documentclass[a4paper,11pt]{article}
+
+\input{layout/preamble}
+\input{layout/macros}
+\input{config/game}
+
+% First pass: collect names and calculated totals from the entity files without
+% typesetting their content. This makes cross-references available everywhere.
+\MMRegistrationPasstrue
+\input{content/characters/index}
+\input{content/spaces/index}
+\input{content/clues/index}
+\input{content/mysteries}
+\MMRegistrationPassfalse
+
+\begin{document}
+\pagenumbering{gobble}
+\GameTitlePage
+\clearpage
+\pagenumbering{arabic}
+\tableofcontents
+\clearpage
+
+\input{content/game-plan}
+\input{content/general_rules.tex}
+\input{content/game_components.tex}
+
+
+\end{document}

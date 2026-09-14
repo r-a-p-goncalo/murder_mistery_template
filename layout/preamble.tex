@@ -1,0 +1,28 @@
+% Packages and document-wide presentation settings.
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+\definecolor{ink}{HTML}{25202A}
+\definecolor{wine}{HTML}{6E2034}
+\definecolor{fog}{HTML}{F4F1F2}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=wine,
+  urlcolor=wine,
+  pdfauthor={},
+  pdftitle={Murder Mystery Party}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.5em, itemsep=0.25em, topsep=0.35em}
+\titleformat{\section}{\Large\bfseries\color{wine}}{}{0pt}{}[\vspace{0.15em}\color{wine}\titlerule]
+\titleformat{\subsection}[block]{\large\bfseries\color{ink}}{}{0pt}{}
