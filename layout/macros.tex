@@ -26,6 +26,14 @@
     \csname mm@#1@#2\endcsname%
   }%
 }
+
+\newcommand{\MMEntityReference}[3]{%
+  \@ifundefined{mm@#1@#2}{%
+    \MMNamedEntity{#1}{#2}%
+  }{%
+    \hyperref[#1:#2]{#3{\MMNamedEntity{#1}{#2}}}%
+  }%
+}
 \makeatother
 
 % Raw names are useful in headings; references apply the styles configured in config/game.tex.
@@ -33,9 +41,15 @@
 \newcommand{\SpaceName}[1]{\MMNamedEntity{space}{#1}}
 \newcommand{\ClueName}[1]{\MMNamedEntity{clue}{#1}}
 
-\newcommand{\Character}[1]{\CharacterReferenceStyle{\CharacterName{#1}}}
-\newcommand{\Space}[1]{\SpaceReferenceStyle{\SpaceName{#1}}}
-\newcommand{\Clue}[1]{\ClueReferenceStyle{\ClueName{#1}}}
+% Every entity reference links to the matching sheet or mystery section.
+\newcommand{\Character}[1]{\MMEntityReference{character}{#1}{\CharacterReferenceStyle}}
+\newcommand{\Space}[1]{\MMEntityReference{space}{#1}{\SpaceReferenceStyle}}
+\newcommand{\Clue}[1]{\MMEntityReference{clue}{#1}{\ClueReferenceStyle}}
+\newcommand{\Mystery}[1]{\MysteryReferenceStyle{\nameref{mystery:#1}}}
+
+% Consistent inline formatting for times and entities without their own sheet.
+\newcommand{\timestamp}[1]{\TimestampStyle{#1}}
+\newcommand{\outsideentity}[1]{\OutsideEntityStyle{#1}}
 
 \newcommand{\GameTitlePage}{%
   \begin{titlepage}
@@ -58,7 +72,7 @@
 }
 
 % Each sheet command is its entity's single source of truth. During the silent
-% registration pass it records the ID and name; during normal rendering it typesets the body.
+% registration pass it records the ID and display name; during normal rendering it typesets the body.
 \newcommand{\CharacterSheet}[4]{%
   \ifMMRegistrationPass
     % A character without a name is referenced by its title.
@@ -68,7 +82,7 @@
       \MMDeclareNamedEntity{character}{#1}{#3}{characterCount}%
     \fi
   \else
-    \subsubsection{#2: \Character{#1}}
+    \subsubsection{#2: \CharacterReferenceStyle{\CharacterName{#1}}}
     \label{character:#1}%
     #4%
   \fi
@@ -78,7 +92,7 @@
   \ifMMRegistrationPass
     \MMDeclareNamedEntity{space}{#1}{#2}{spaceCount}%
   \else
-    \subsubsection{\Space{#1}}
+    \subsubsection{\SpaceReferenceStyle{\SpaceName{#1}}}
     \label{space:#1}%
     #3%
   \fi
@@ -88,18 +102,19 @@
   \ifMMRegistrationPass
     \MMDeclareNamedEntity{clue}{#1}{#2}{clueCount}%
   \else
-    \subsubsection{\Clue{#1}}
+    \subsubsection{\ClueReferenceStyle{\ClueName{#1}}}
     \label{clue:#1}%
     #3%
   \fi
 }
 
-\newcommand{\Mystery}[2]{%
+\newcommand{\MysterySheet}[3]{%
   \ifMMRegistrationPass
     \stepcounter{mysteryCount}%
   \else
-    \subsubsection{#1}%
-    #2%
+    \subsubsection{#2}%
+    \label{mystery:#1}%
+    #3%
   \fi
 }
 
@@ -107,5 +122,5 @@
   \subsection{Entity summary}
   There are \arabic{characterCount} characters.\par
   There are \arabic{clueCount} clues.\par
-  There are \arabic{mysteryCount} misteries.\par
+  There are \arabic{mysteryCount} mysteries.\par
 }
