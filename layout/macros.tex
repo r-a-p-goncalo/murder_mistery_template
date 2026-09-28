@@ -18,11 +18,11 @@
   }%
 }
 
-\newcommand{\MMConfiguredCharacterName}[1]{%
+% A configured display name overrides the sheet title; the title is the
+% fallback when an ID has no entry in config/characters.tex.
+\newcommand{\MMConfiguredCharacterName}[2]{%
   \@ifundefined{mm@configured@character@#1}{%
-    \PackageError{murder-mystery}{No name configured for character identifier `#1'}%
-      {Add \string\MMCharacterName{#1}{<name>} to config/characters.tex.}%
-    #1%
+    #2%
   }{%
     \csname mm@configured@character@#1\endcsname%
   }%
@@ -92,12 +92,13 @@
   \end{titlepage}%
 }
 
-% Character names are configured in config/characters.tex. During the silent
-% registration pass each sheet records its ID and configured display name;
-% during normal rendering it typesets the body.
+% Character names can be configured in config/characters.tex. During the
+% silent registration pass each sheet records its ID and display name, falling
+% back to its title when no configured name exists; during normal rendering it
+% typesets the body.
 \newcommand{\CharacterSheet}[3]{%
   \ifMMRegistrationPass
-    \MMDeclareNamedEntity{character}{#1}{\MMConfiguredCharacterName{#1}}{characterCount}%
+    \MMDeclareNamedEntity{character}{#1}{\MMConfiguredCharacterName{#1}{#2}}{characterCount}%
   \else
     \subsubsection{#2: \CharacterReferenceStyle{\CharacterName{#1}}}
     \label{character:#1}%
