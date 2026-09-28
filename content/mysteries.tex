@@ -1,12 +1,18 @@
-% Keep every mystery and its content in this file. Reference one with \Mystery{who-killed-newcomer}.
-\MysterySheet{who-killed-newcomer}{\texorpdfstring{Who killed \Character{newcomer}}{Who killed Newcomer}}{
-  The newcomer was killed before he could be turned, who would to such a thing?
+% The first argument is both the visible label and the \Mystery{...} reference
+% key. Each mystery therefore needs only a label and its body.
+\MysterySheet{How was newcomer killed}{
+  How was newcomer killed?
 
-  Why?
-
-  How?
-
-
+  The answer is that the forbidden potion \Character{vampirehead} gave it killed it, due to \Character{usurper} having given it previously.
 }
 
+\MysterySheet{Who killed newcomer}{
+  The newcomer was killed before he could be turned, who would to such a thing?
 
+  This mystery is supposed to be, in practice, who gave
+
+  The answer is \Character{usurper}.
+}
+
+% Read this as: solve the first mystery before the second mystery.
+\MysteryDependency{How newcomer was killed}{Who killed newcomer}
