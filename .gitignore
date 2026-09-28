@@ -8,3 +8,4 @@
 *.toc
 tmp/
 
+config/characters.tex

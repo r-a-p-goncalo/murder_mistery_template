@@ -7,6 +7,27 @@
 \MMRegistrationPassfalse
 
 \makeatletter
+% Character display names live in config/characters.tex so they can be kept
+% separate from the player sheets and other game content.
+\newcommand{\MMCharacterName}[2]{%
+  \@ifundefined{mm@configured@character@#1}{%
+    \expandafter\gdef\csname mm@configured@character@#1\endcsname{#2}%
+  }{%
+    \PackageError{murder-mystery}{Duplicate character identifier `#1'}%
+      {Each character identifier must be named only once in config/characters.tex.}%
+  }%
+}
+
+% A configured display name overrides the sheet title; the title is the
+% fallback when an ID has no entry in config/characters.tex.
+\newcommand{\MMConfiguredCharacterName}[2]{%
+  \@ifundefined{mm@configured@character@#1}{%
+    #2%
+  }{%
+    \csname mm@configured@character@#1\endcsname%
+  }%
+}
+
 \newcommand{\MMDeclareNamedEntity}[4]{%
   \@ifundefined{mm@#1@#2}{%
     \expandafter\gdef\csname mm@#1@#2\endcsname{#3}%
@@ -71,20 +92,17 @@
   \end{titlepage}%
 }
 
-% Each sheet command is its entity's single source of truth. During the silent
-% registration pass it records the ID and display name; during normal rendering it typesets the body.
-\newcommand{\CharacterSheet}[4]{%
+% Character names can be configured in config/characters.tex. During the
+% silent registration pass each sheet records its ID and display name, falling
+% back to its title when no configured name exists; during normal rendering it
+% typesets the body.
+\newcommand{\CharacterSheet}[3]{%
   \ifMMRegistrationPass
-    % A character without a name is referenced by its title.
-    \if\relax\detokenize{#3}\relax
-      \MMDeclareNamedEntity{character}{#1}{#2}{characterCount}%
-    \else
-      \MMDeclareNamedEntity{character}{#1}{#3}{characterCount}%
-    \fi
+    \MMDeclareNamedEntity{character}{#1}{\MMConfiguredCharacterName{#1}{#2}}{characterCount}%
   \else
     \subsubsection{#2: \CharacterReferenceStyle{\CharacterName{#1}}}
     \label{character:#1}%
-    #4%
+    #3%
   \fi
 }
 
