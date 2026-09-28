@@ -142,3 +142,18 @@
   There are \arabic{clueCount} clues.\par
   There are \arabic{mysteryCount} mysteries.\par
 }
+
+% PDFLaTeX cannot embed SVG files directly. The generator writes a matching
+% TikZ rendering, but the SVG remains the source-of-truth presence check so a
+% normal game build simply omits the graph until relationship analysis exists.
+\newcommand{\RelationshipGraph}{%
+  \IfFileExists{generated/relationship_graph.svg}{%
+    \IfFileExists{generated/relationship_graph.tex}{%
+      \clearpage
+      \subsection{Relationship graph}
+      \input{generated/relationship_graph.tex}%
+    }{%
+      \PackageWarning{murder-mystery}{Relationship SVG exists but generated/relationship_graph.tex is missing. Run tools/generate_player_packets.py}%
+    }%
+  }{}%
+}
