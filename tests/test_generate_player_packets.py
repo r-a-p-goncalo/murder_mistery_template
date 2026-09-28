@@ -30,6 +30,16 @@ class GeneratePlayerPacketsTest(unittest.TestCase):
             self.assertIn("\\begin{tikzpicture}", graph_tex)
             self.assertIn("opacity=1.00", graph_tex)
 
+            self.assertEqual(
+                analysis["mystery_dependencies"],
+                [{"solve_first": "How newcomer was killed", "solve_next": "Who killed newcomer"}],
+            )
+            mystery_mermaid = (output / "mystery_order.mmd").read_text(encoding="utf-8")
+            self.assertIn("flowchart LR", mystery_mermaid)
+            self.assertIn("mystery_0 --> mystery_1", mystery_mermaid)
+            mystery_graph_tex = (output / "mystery_order_graph.tex").read_text(encoding="utf-8")
+            self.assertIn("\\draw[->, wine, thick]", mystery_graph_tex)
+
             packet = (output / "players" / "usurper" / "player_packet.tex").read_text(encoding="utf-8")
             self.assertIn("\\begin{document}", packet)
             self.assertIn("\\section{General rules}", packet)

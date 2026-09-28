@@ -126,15 +126,22 @@
   \fi
 }
 
-\newcommand{\MysterySheet}[3]{%
+% The mystery label is deliberately also its visible name and \Mystery{...}
+% reference key.  This keeps a mystery declaration to a label and one body.
+\newcommand{\MysterySheet}[2]{%
   \ifMMRegistrationPass
     \stepcounter{mysteryCount}%
   \else
-    \subsubsection{#2}%
+    \subsubsection{#1}%
     \label{mystery:#1}%
-    #3%
+    #2%
   \fi
 }
+
+% Declare that the first mystery must be solved before the second.  The
+% generator reads these declarations to create Mermaid, SVG, and TikZ graphs;
+% the declaration is intentionally silent in the rendered document.
+\newcommand{\MysteryDependency}[2]{}
 
 \newcommand{\RelationshipSummary}{%
   \subsection{Entity summary}
@@ -154,6 +161,19 @@
       \input{generated/relationship_graph.tex}%
     }{%
       \PackageWarning{murder-mystery}{Relationship SVG exists but generated/relationship_graph.tex is missing. Run tools/generate_player_packets.py}%
+    }%
+  }{}%
+}
+
+% As with the relationship graph, SVG is the existence check and the matching
+% generated TikZ is the PDFLaTeX-native rendering.
+\newcommand{\MysteryOrderGraph}{%
+  \IfFileExists{generated/mystery_order_graph.svg}{%
+    \IfFileExists{generated/mystery_order_graph.tex}{%
+      \subsubsection{Mystery resolution order}%
+      \input{generated/mystery_order_graph.tex}%
+    }{%
+      \PackageWarning{murder-mystery}{Mystery-order SVG exists but generated/mystery_order_graph.tex is missing. Run tools/generate_player_packets.py}%
     }%
   }{}%
 }

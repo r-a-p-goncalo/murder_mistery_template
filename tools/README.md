@@ -10,11 +10,22 @@ It uses only the Python standard library and writes derived files under `generat
 
 - relationship-map reference counts in CSV and JSON;
 - an SVG graph, a Graphviz DOT source, and a TikZ companion that PDFLaTeX can embed; and
+- an editable Mermaid (`.mmd`) mystery-resolution graph plus matching SVG and TikZ renderings; and
 - one standalone, player-safe `player_packet.tex` file for each declared character.
 
 The packets snapshot the current public rules and the character's own sheet. They do not distribute GM-only notes, the relationship map, clues, mysteries, the complete background, or other character sheets. Edit the sources in `content/` and `config/`; do not edit `generated/`.
 
 The GM document checks for `generated/relationship_graph.svg`. When it is present, it renders the matching generated TikZ graph immediately after the relationship and GM notes; when it is absent, the document compiles without a graph.
+
+Declare a mystery with its visible label and body only, then add ordering arrows separately:
+
+```tex
+\MysterySheet{How newcomer was killed}{...}
+\MysterySheet{Who killed newcomer}{...}
+\MysteryDependency{How newcomer was killed}{Who killed newcomer}
+```
+
+The generator writes `generated/mystery_order.mmd` for Mermaid-compatible editors and matching SVG/TikZ graphs. The GM document includes the TikZ graph in its Mysteries section only when the generated SVG exists.
 
 Each generated TeX packet can be compiled from the repository root, for example:
 

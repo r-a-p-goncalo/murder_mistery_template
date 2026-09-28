@@ -165,11 +165,18 @@ def files_from_index(root: Path, index_file: Path) -> list[Path]:
     return files
 
 
-def parse_sheets(root: Path, index_relative_path: str, macro: str) -> list[Sheet]:
+def parse_sheets(root: Path, index_relative_path: str, macro: str, argument_count: int = 3) -> list[Sheet]:
+    """Parse entity sheets whose first argument is an identifier.
+
+    Mysteries are intentionally different: their two-argument form uses the
+    first argument as both the visible label and the reference key.
+    """
+
     sheets: list[Sheet] = []
     for source in files_from_index(root, root / index_relative_path):
-        for arguments, latex in extract_macro_calls(read_text(source), macro):
-            sheets.append(Sheet(arguments[0].strip(), arguments[1].strip(), source, latex.strip()))
+        for arguments, latex in extract_macro_calls(read_text(source), macro, argument_count):
+            title = arguments[0].strip() if argument_count == 2 else arguments[1].strip()
+            sheets.append(Sheet(arguments[0].strip(), title, source, latex.strip()))
     duplicate_ids = [entity_id for entity_id, count in Counter(sheet.entity_id for sheet in sheets).items() if count > 1]
     if duplicate_ids:
         raise SourceError(f"Duplicate {macro} identifiers: {', '.join(sorted(duplicate_ids))}")
@@ -178,6 +185,50 @@ def parse_sheets(root: Path, index_relative_path: str, macro: str) -> list[Sheet
 
 def parse_configured_names(root: Path) -> dict[str, str]:
     return {identifier.strip(): name.strip() for identifier, name in CONFIGURED_NAME_RE.findall(read_text(root / "config/characters.tex"))}
+
+
+def parse_mystery_dependencies(root: Path, mysteries: list[Sheet]) -> list[tuple[str, str]]:
+    """Read ``\\MysteryDependency{solve-first}{solve-next}`` declarations."""
+
+    dependencies = [
+        (arguments[0].strip(), arguments[1].strip())
+        for arguments, _ in extract_macro_calls(read_text(root / "content/mysteries.tex"), "MysteryDependency", 2)
+    ]
+    known_labels = {mystery.entity_id for mystery in mysteries}
+    unknown_labels = sorted({label for dependency in dependencies for label in dependency if label not in known_labels})
+    if unknown_labels:
+        raise SourceError(
+            "Mystery dependencies refer to undeclared labels: " + ", ".join(unknown_labels)
+        )
+    return dependencies
+
+
+def mysteries_in_dependency_order(mysteries: list[Sheet], dependencies: list[tuple[str, str]]) -> list[Sheet]:
+    """Return a stable topological order, preserving source order where possible."""
+
+    source_order = [mystery.entity_id for mystery in mysteries]
+    successors: dict[str, set[str]] = {label: set() for label in source_order}
+    incoming: dict[str, int] = {label: 0 for label in source_order}
+    for before, after in dependencies:
+        if after not in successors[before]:
+            successors[before].add(after)
+            incoming[after] += 1
+
+    ordered_labels: list[str] = []
+    ready = [label for label in source_order if incoming[label] == 0]
+    while ready:
+        label = ready.pop(0)
+        ordered_labels.append(label)
+        for successor in source_order:
+            if successor in successors[label]:
+                incoming[successor] -= 1
+                if incoming[successor] == 0:
+                    ready.append(successor)
+
+    if len(ordered_labels) != len(source_order):
+        raise SourceError("Mystery dependencies contain a cycle")
+    by_label = {mystery.entity_id: mystery for mystery in mysteries}
+    return [by_label[label] for label in ordered_labels]
 
 
 def find_relationship_items(root: Path) -> list[str]:
@@ -234,6 +285,7 @@ Run `python tools/generate_player_packets.py` from the repository root after edi
 
 - `relationship_counts.csv` and `relationship_analysis.json` list character references in the Relationship map.
 - `relationship_graph.svg` is the rendered network; `relationship_graph.tex` is its PDFLaTeX-native companion. Edge width and opacity grow with the number of Relationship map entries shared by a pair.
+- `mystery_order.mmd` is an editable Mermaid graph of `\\MysteryDependency` declarations; its SVG and TikZ companions render the same resolution order.
 - `players/<character-id>/player_packet.tex` is a self-contained, player-safe LaTeX document containing the public rules and only that character's sheet.
 
 The packets intentionally omit the relationship map, clues, mysteries, full background, and other character sheets. Edit `content/` and `config/`, never these generated files.
@@ -377,6 +429,92 @@ def render_dot(display_names: dict[str, str], pair_counts: Counter[tuple[str, st
     return "\n".join(lines) + "\n"
 
 
+def render_mystery_mermaid(mysteries: list[Sheet], dependencies: list[tuple[str, str]]) -> str:
+    """Create an editable Mermaid source for the mystery-resolution order."""
+
+    node_ids = {mystery.entity_id: f"mystery_{index}" for index, mystery in enumerate(mysteries)}
+    lines = [
+        "%% Generated by tools/generate_player_packets.py; do not edit.",
+        "flowchart LR",
+        "  classDef mystery fill:#FFFFFF,stroke:#6E2034,stroke-width:2px,color:#25202A",
+    ]
+    for mystery in mysteries:
+        label = latex_to_plain(mystery.title).replace('"', "'")
+        lines.append(f'  {node_ids[mystery.entity_id]}["{label}"]')
+    for before, after in dependencies:
+        lines.append(f"  {node_ids[before]} --> {node_ids[after]}")
+    if mysteries:
+        lines.append("  class " + ",".join(node_ids[mystery.entity_id] for mystery in mysteries) + " mystery")
+    return "\n".join(lines) + "\n"
+
+
+def render_mystery_svg(mysteries: list[Sheet], dependencies: list[tuple[str, str]]) -> str:
+    """Render a compact SVG fallback from the same dependency declarations."""
+
+    width = 840
+    node_width, node_height = 430, 66
+    start_y, vertical_gap = 88, 125
+    height = max(230, start_y + max(len(mysteries) - 1, 0) * vertical_gap + 120)
+    center_x = width / 2
+    positions = {mystery.entity_id: start_y + index * vertical_gap for index, mystery in enumerate(mysteries)}
+    edge_parts: list[str] = []
+    for before, after in dependencies:
+        edge_parts.append(
+            f'<line x1="{center_x:.0f}" y1="{positions[before] + node_height / 2:.0f}" '
+            f'x2="{center_x:.0f}" y2="{positions[after] - node_height / 2:.0f}" class="edge" marker-end="url(#arrow)" />'
+        )
+    node_parts: list[str] = []
+    for mystery in mysteries:
+        y = positions[mystery.entity_id]
+        label = html.escape(latex_to_plain(mystery.title))
+        node_parts.extend(
+            [
+                f'<rect x="{center_x - node_width / 2:.0f}" y="{y - node_height / 2:.0f}" width="{node_width}" height="{node_height}" rx="12" class="node" />',
+                f'<text x="{center_x:.0f}" y="{y + 6:.0f}" class="node-label">{label}</text>',
+            ]
+        )
+    return f"""<!-- Generated by tools/generate_player_packets.py; do not edit. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title description">
+  <title id="title">Mystery resolution order</title>
+  <desc id="description">Arrows point from the mystery that should be solved first to the mystery that follows.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowhead" /></marker>
+  </defs>
+  <style>
+    .background {{ fill: #F4F1F2; }}
+    .node {{ fill: #FFFFFF; stroke: #6E2034; stroke-width: 2.5; }}
+    .node-label {{ fill: #25202A; font: 700 20px sans-serif; text-anchor: middle; }}
+    .edge {{ stroke: #6E2034; stroke-width: 3; }}
+    .arrowhead {{ fill: #6E2034; }}
+  </style>
+  <rect width="100%" height="100%" class="background" />
+  <g aria-label="Mystery dependencies">{''.join(edge_parts)}</g>
+  <g aria-label="Mysteries">{''.join(node_parts)}</g>
+</svg>
+"""
+
+
+def render_mystery_tikz(mysteries: list[Sheet], dependencies: list[tuple[str, str]]) -> str:
+    """Create the PDFLaTeX-native version of the mystery-order graph."""
+
+    node_names = {mystery.entity_id: f"mystery-order-node-{index}" for index, mystery in enumerate(mysteries)}
+    lines = [
+        "% Generated by tools/generate_player_packets.py; do not edit.",
+        "\\begin{center}",
+        "\\begin{tikzpicture}",
+        f"  \\path[use as bounding box] (-3.3,{-2.0 * max(len(mysteries) - 1, 0) - 0.8:.1f}) rectangle (3.3,0.8);",
+        "  \\tikzset{mystery order node/.style={draw=wine, fill=white, rounded corners=7pt, align=center, text width=4.7cm, minimum height=0.9cm, inner sep=5pt}}",
+    ]
+    for index, mystery in enumerate(mysteries):
+        lines.append(
+            f"  \\node[mystery order node] ({node_names[mystery.entity_id]}) at (0,{-2.0 * index:.1f}) {{{mystery.title}}};"
+        )
+    for before, after in dependencies:
+        lines.append(f"  \\draw[->, wine, thick] ({node_names[before]}) -- ({node_names[after]});")
+    lines.extend(["\\end{tikzpicture}", "\\end{center}", ""])
+    return "\n".join(lines)
+
+
 def packet_tex(
     root: Path,
     character: Sheet,
@@ -473,7 +611,9 @@ def build(root: Path, output: Path) -> dict[str, object]:
     characters = parse_sheets(root, "content/characters/index.tex", "CharacterSheet")
     spaces = parse_sheets(root, "content/spaces/index.tex", "SpaceSheet")
     clues = parse_sheets(root, "content/clues/index.tex", "ClueSheet")
-    mysteries = parse_sheets(root, "content/mysteries.tex", "MysterySheet")
+    mysteries = parse_sheets(root, "content/mysteries.tex", "MysterySheet", argument_count=2)
+    mystery_dependencies = parse_mystery_dependencies(root, mysteries)
+    ordered_mysteries = mysteries_in_dependency_order(mysteries, mystery_dependencies)
     configured_names = parse_configured_names(root)
 
     character_ids = {character.entity_id for character in characters}
@@ -531,6 +671,7 @@ def build(root: Path, output: Path) -> dict[str, object]:
             "relationship_map": "content/relations-and-notes.tex",
             "character_index": "content/characters/index.tex",
             "character_config": "config/characters.tex",
+            "mysteries": "content/mysteries.tex",
         },
         "character_reference_counts": [
             {
@@ -546,6 +687,10 @@ def build(root: Path, output: Path) -> dict[str, object]:
             for pair, weight in sorted(pair_counts.items())
         ],
         "relationship_map_entries": relationship_phrases,
+        "mystery_dependencies": [
+            {"solve_first": before, "solve_next": after}
+            for before, after in mystery_dependencies
+        ],
         "validation": {
             "unknown_character_references_in_relationship_map": dict(sorted(unknown_references.items())),
             "configured_character_ids_without_sheets": configured_not_in_sheets,
@@ -556,6 +701,9 @@ def build(root: Path, output: Path) -> dict[str, object]:
     owned_write(output / "relationship_graph.dot", render_dot(display_names, pair_counts))
     owned_write(output / "relationship_graph.svg", render_svg(characters, display_names, pair_counts))
     owned_write(output / "relationship_graph.tex", render_tikz(characters, display_names, pair_counts))
+    owned_write(output / "mystery_order.mmd", render_mystery_mermaid(ordered_mysteries, mystery_dependencies))
+    owned_write(output / "mystery_order_graph.svg", render_mystery_svg(ordered_mysteries, mystery_dependencies))
+    owned_write(output / "mystery_order_graph.tex", render_mystery_tikz(ordered_mysteries, mystery_dependencies))
     owned_write(output / "README.md", generated_readme())
 
     for character in characters:
