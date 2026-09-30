@@ -1,0 +1,1 @@
+<circle cx="@@X@@" cy="@@Y@@" r="55" class="node" /><text x="@@X@@" y="@@NAME_Y@@" class="node-name">@@NAME@@</text><text x="@@X@@" y="@@ROLE_Y@@" class="node-role">@@ROLE@@</text>
