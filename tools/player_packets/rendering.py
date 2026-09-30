@@ -12,6 +12,8 @@ from .source import (
     PLAYER_PACKET_ENTITY_TEMPLATE,
     PLAYER_PACKET_TEMPLATE,
     Sheet,
+    character_image_path,
+    character_short_description,
     latex_to_plain,
     player_safe_rules,
     read_text,
@@ -31,6 +33,26 @@ def render_artifact_template(name: str, values: dict[str, str]) -> str:
 
 def generated_readme() -> str:
     return render_artifact_template("generated_readme.template.md", {"GENERATOR_PATH": GENERATED_BY})
+
+
+def character_collection_tex(root: Path, characters: list[Sheet]) -> str:
+    """Render the player-safe character overview page shared by every document."""
+
+    entries = [
+        render_artifact_template(
+            "character_short.template.tex",
+            {
+                "CHARACTER_ID": character.entity_id,
+                "IMAGE_PATH": character_image_path(root, character.entity_id),
+                "SHORT_DESCRIPTION": character_short_description(character),
+            },
+        ).strip()
+        for character in characters
+    ]
+    return render_artifact_template(
+        "character_collection.template.tex",
+        {"GENERATOR_PATH": GENERATED_BY, "CHARACTER_ENTRIES": "\n".join(entries)},
+    )
 
 
 def render_svg(
@@ -265,6 +287,7 @@ def packet_tex(
     spaces: list[Sheet],
     clues: list[Sheet],
     mysteries: list[Sheet],
+    character_collection: str,
 ) -> str:
     """Create a standalone snapshot with public rules and one sheet."""
 
@@ -290,6 +313,7 @@ def packet_tex(
             "GAME_CONFIG": read_text(root / "config/game.tex").strip(),
             "ENTITY_DECLARATIONS": "\n".join(declarations),
             "PUBLIC_RULES": player_safe_rules(root),
+            "CHARACTER_COLLECTION": character_collection,
             "CHARACTER_SHEET": character.latex,
         },
     )

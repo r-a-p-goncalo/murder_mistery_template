@@ -12,6 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 from .rendering import (
+    character_collection_tex,
     generated_readme,
     packet_tex,
     render_dot,
@@ -47,6 +48,7 @@ def build(root: Path, output: Path) -> dict[str, object]:
     mystery_dependencies = parse_mystery_dependencies(root, mysteries)
     ordered_mysteries = mysteries_in_dependency_order(mysteries, mystery_dependencies)
     configured_names = parse_configured_names(root)
+    character_collection = character_collection_tex(root, characters)
 
     character_ids = {character.entity_id for character in characters}
     display_names = {
@@ -136,12 +138,13 @@ def build(root: Path, output: Path) -> dict[str, object]:
     owned_write(output / "mystery_order.mmd", render_mystery_mermaid(ordered_mysteries, mystery_dependencies))
     owned_write(output / "mystery_order_graph.svg", render_mystery_svg(ordered_mysteries, mystery_dependencies))
     owned_write(output / "mystery_order_graph.tex", render_mystery_tikz(ordered_mysteries, mystery_dependencies))
+    owned_write(output / "character_collection.tex", character_collection)
     owned_write(output / "README.md", generated_readme())
 
     for character in characters:
         owned_write(
             output / "players" / character.entity_id / "player_packet.tex",
-            packet_tex(root, character, characters, spaces, clues, mysteries),
+            packet_tex(root, character, characters, spaces, clues, mysteries, character_collection),
         )
 
     return analysis

@@ -72,6 +72,7 @@
 \newcommand{\timestamp}[1]{\TimestampStyle{#1}}
 \newcommand{\outsideentity}[1]{\OutsideEntityStyle{#1}}
 \newcommand{\mainobjective}[1]{\MainObjectiveStyle{#1}}
+\newcommand{\shortdescription}[1]{\paragraph{Description}#1}
 
 \newcommand{\GameTitlePage}{%
   \begin{titlepage}
@@ -177,4 +178,14 @@
       \PackageWarning{murder-mystery}{Mystery-order SVG exists but generated/mystery_order_graph.tex is missing. Run python compile.py}%
     }%
   }{}%
+}
+
+% The character overview is generated from player-safe data and appears before
+% the complete character sheets when available.
+\newcommand{\CharacterCollection}{%
+  \IfFileExists{generated/character_collection.tex}{%
+    \input{generated/character_collection}%
+  }{%
+    \PackageWarning{murder-mystery}{Generated character collection is missing. Run python compile.py}%
+  }%
 }

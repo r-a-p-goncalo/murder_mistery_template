@@ -23,6 +23,7 @@ GENERATED_MARKERS = (
 INPUT_RE = re.compile(r"\\input\s*\{([^{}]+)\}")
 CHARACTER_RE = re.compile(r"\\Character\s*\{([^{}]+)\}")
 CONFIGURED_NAME_RE = re.compile(r"\\MMCharacterName\s*\{([^{}]+)\}\s*\{([^{}]+)\}")
+CHARACTER_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf")
 
 
 @dataclass(frozen=True)
@@ -176,6 +177,32 @@ def parse_configured_names(root: Path) -> dict[str, str]:
     }
 
 
+def character_short_description(character: Sheet) -> str:
+    """Return a character's optional ``\\shortdescription`` body."""
+
+    descriptions = extract_macro_calls(character.latex, "shortdescription", argument_count=1)
+    if len(descriptions) > 1:
+        raise SourceError(f"Character '{character.entity_id}' declares more than one \\shortdescription")
+    return descriptions[0][0][0].strip() if descriptions else ""
+
+
+def character_image_path(root: Path, character_id: str) -> str:
+    """Return a TeX-readable character image path, falling back to the placeholder."""
+
+    image_directory = root / "config/character_imgs"
+    matches = sorted(
+        candidate
+        for candidate in image_directory.glob(f"{character_id}.*")
+        if candidate.is_file() and candidate.stem == character_id and candidate.suffix.lower() in CHARACTER_IMAGE_SUFFIXES
+    )
+    image = matches[0] if matches else image_directory / "placeholder.png"
+    if not image.is_file():
+        raise SourceError(
+            f"No image exists for character '{character_id}' and the placeholder is missing: {image_directory / 'placeholder.png'}"
+        )
+    return tex_path(image.relative_to(root))
+
+
 def parse_mystery_dependencies(root: Path, mysteries: list[Sheet]) -> list[tuple[str, str]]:
     """Read ``\\MysteryDependency{solve-first}{solve-next}`` declarations."""
 
@@ -265,10 +292,16 @@ def owned_write(path: Path, content: str) -> None:
 
 
 def player_safe_rules(root: Path) -> str:
-    """Copy the player rules while leaving authoring guidance with the GM."""
+    """Copy the dedicated player rules while keeping authoring guidance GM-only."""
 
     source = read_text(root / "content/general_rules.tex")
-    host_guidance = re.search(r"^\\subsection\s*\{How to create a game\}", source, flags=re.MULTILINE)
-    if not host_guidance:
-        raise SourceError("content/general_rules.tex must mark host guidance with 'How to create a game'")
-    return source[: host_guidance.start()].rstrip()
+    gm_rules = read_text(root / "content/gm_rules.tex")
+    host_guidance = re.compile(r"^\\subsection\s*\{How to create a game\}", flags=re.MULTILINE)
+
+    if host_guidance.search(source):
+        raise SourceError(
+            "Host guidance belongs in content/gm_rules.tex, not content/general_rules.tex"
+        )
+    if not host_guidance.search(gm_rules):
+        raise SourceError("content/gm_rules.tex must mark host guidance with 'How to create a game'")
+    return source.rstrip()
