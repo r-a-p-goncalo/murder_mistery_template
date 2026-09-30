@@ -79,9 +79,9 @@
     \vspace*{0.20\textheight}
     {\color{wine}\rule{0.7\textwidth}{1.2pt}\par}
     \vspace{1.5em}
-    {\Huge\bfseries\color{ink}\GameTitle\par}
+    \MMGameTitleStyle{\GameTitle\par}
     \vspace{0.65em}
-    {\Large\itshape \GameTagline\par}
+    \MMGameTaglineStyle{\GameTagline\par}
     \vspace{1.5em}
     {\color{wine}\rule{0.7\textwidth}{1.2pt}\par}
     \vfill
@@ -161,7 +161,7 @@
       \subsection{Relationship graph}
       \input{generated/relationship_graph.tex}%
     }{%
-      \PackageWarning{murder-mystery}{Relationship SVG exists but generated/relationship_graph.tex is missing. Run tools/generate_player_packets.py}%
+      \PackageWarning{murder-mystery}{Relationship SVG exists but generated/relationship_graph.tex is missing. Run python compile.py}%
     }%
   }{}%
 }
@@ -174,7 +174,7 @@
       \subsubsection{Mystery resolution order}%
       \input{generated/mystery_order_graph.tex}%
     }{%
-      \PackageWarning{murder-mystery}{Mystery-order SVG exists but generated/mystery_order_graph.tex is missing. Run tools/generate_player_packets.py}%
+      \PackageWarning{murder-mystery}{Mystery-order SVG exists but generated/mystery_order_graph.tex is missing. Run python compile.py}%
     }%
   }{}%
 }

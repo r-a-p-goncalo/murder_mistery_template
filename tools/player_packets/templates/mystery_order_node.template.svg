@@ -1,0 +1,1 @@
+<rect x="@@X@@" y="@@Y@@" width="@@WIDTH@@" height="@@HEIGHT@@" rx="12" class="node" /><text x="@@CENTER_X@@" y="@@LABEL_Y@@" class="node-label">@@LABEL@@</text>

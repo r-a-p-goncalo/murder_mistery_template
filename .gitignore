@@ -10,4 +10,4 @@ tmp/
 generated/
 
 config/characters.tex
-*/__pycache__/*
+**/__pycache__/**
