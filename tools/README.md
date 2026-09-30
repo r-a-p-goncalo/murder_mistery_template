@@ -21,6 +21,8 @@ The player-packet document is maintained in `layout/player_packet.template.tex`;
 
 Generated README and SVG layouts live in `tools/player_packets/templates/`. The renderer supplies their `@@UPPERCASE_TOKENS@@` values, keeping the generated document structures editable without changing Python.
 
+Add `\shortdescription{...}` inside a `\CharacterSheet` to include that text in the generated character overview. Character images are read from `config/character_imgs/<character-id>.<extension>`; supported extensions are PNG, JPG, JPEG, and PDF. When no matching image exists, the overview uses `config/character_imgs/placeholder.png`.
+
 The GM document checks for `generated/relationship_graph.svg`. When it is present, it renders the matching generated TikZ graph immediately after the relationship and GM notes; when it is absent, the document compiles without a graph.
 
 Declare a mystery with its visible label and body only, then add ordering arrows separately:

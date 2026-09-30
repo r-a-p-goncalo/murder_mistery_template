@@ -6,6 +6,7 @@ Run `python compile.py` from the repository root after editing the game sources.
 - `relationship_counts.csv` and `relationship_analysis.json` list character references in the Relationship map.
 - `relationship_graph.svg` is the rendered network; `relationship_graph.tex` is its PDFLaTeX-native companion. Edge width and opacity grow with the number of Relationship map entries shared by a pair.
 - `mystery_order.mmd` is an editable Mermaid graph of `\MysteryDependency` declarations; its SVG and TikZ companions render the same resolution order.
+- `character_collection.tex` is the player-safe character overview with each character's image and optional short description.
 - `players/<character-id>/player_packet.tex` is a self-contained, player-safe LaTeX document containing the public rules and only that character's sheet.
 
 The packets intentionally omit the relationship map, clues, mysteries, full background, and other character sheets. Edit `content/` and `config/`, never these generated files.
