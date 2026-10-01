@@ -24,6 +24,7 @@ GENERATED_MARKERS = (
 INPUT_RE = re.compile(r"\\input\s*\{([^{}]+)\}")
 CHARACTER_RE = re.compile(r"\\Character\s*\{([^{}]+)\}")
 CONFIGURED_NAME_RE = re.compile(r"\\MMCharacterName\s*\{([^{}]+)\}\s*\{([^{}]+)\}")
+GM_NOTES_HEADING_RE = re.compile(r"\\paragraph\s*\{\s*GM\s+Notes\s*\}", flags=re.IGNORECASE)
 CHARACTER_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf")
 
 
@@ -185,6 +186,29 @@ def character_short_description(character: Sheet) -> str:
     if len(descriptions) > 1:
         raise SourceError(f"Character '{character.entity_id}' declares more than one \\shortdescription")
     return descriptions[0][0][0].strip() if descriptions else ""
+
+
+def player_safe_character_sheet(character: Sheet) -> str:
+    """Return a character sheet with its trailing GM Notes section omitted.
+
+    GM Notes are deliberately authored as the final paragraph of a character
+    sheet. The main document retains them, while this copy is used only in the
+    player's individual packet.
+    """
+
+    sheets = extract_macro_calls(character.latex, "CharacterSheet")
+    if len(sheets) != 1:
+        raise SourceError(f"Character '{character.entity_id}' must declare exactly one \\CharacterSheet")
+    arguments, _ = sheets[0]
+    body = arguments[2]
+    headings = list(GM_NOTES_HEADING_RE.finditer(body))
+    if len(headings) > 1:
+        raise SourceError(f"Character '{character.entity_id}' declares more than one GM Notes section")
+    if not headings:
+        return character.latex
+
+    player_body = body[: headings[0].start()].rstrip()
+    return f"\\CharacterSheet{{{arguments[0]}}}{{{arguments[1]}}}{{\n{player_body}\n}}"
 
 
 def character_image_path(root: Path, character_id: str) -> str:

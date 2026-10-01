@@ -15,6 +15,7 @@ from .source import (
     character_image_path,
     character_short_description,
     latex_to_plain,
+    player_safe_character_sheet,
     player_safe_rules,
     read_text,
     render_template,
@@ -314,6 +315,6 @@ def packet_tex(
             "ENTITY_DECLARATIONS": "\n".join(declarations),
             "PUBLIC_RULES": player_safe_rules(root),
             "CHARACTER_COLLECTION": character_collection,
-            "CHARACTER_SHEET": character.latex,
+            "CHARACTER_SHEET": player_safe_character_sheet(character),
         },
     )
