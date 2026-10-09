@@ -11,3 +11,5 @@ generated/
 
 config/characters.tex
 **/__pycache__/**
+
+content\assets\space\**
