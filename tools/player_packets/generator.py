@@ -11,6 +11,14 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from .paths import (
+    CHARACTER_CONFIG_PATH,
+    CHARACTER_INDEX_PATH,
+    CLUE_INDEX_PATH,
+    MYSTERIES_PATH,
+    RELATIONSHIP_MAP_PATH,
+    SPACE_INDEX_PATH,
+)
 from .rendering import (
     character_collection_tex,
     generated_readme,
@@ -41,13 +49,13 @@ def build(root: Path, output: Path) -> dict[str, object]:
 
     root = root.resolve()
     output = output.resolve()
-    characters = parse_sheets(root, "content/characters/index.tex", "CharacterSheet")
-    spaces = parse_sheets(root, "content/spaces/index.tex", "SpaceSheet")
-    clues = parse_sheets(root, "content/clues/index.tex", "ClueSheet")
-    mysteries = parse_sheets(root, "content/mysteries.tex", "MysterySheet", argument_count=2)
-    mystery_dependencies = parse_mystery_dependencies(root, mysteries)
+    characters = parse_sheets(root, CHARACTER_INDEX_PATH, "CharacterSheet")
+    spaces = parse_sheets(root, SPACE_INDEX_PATH, "SpaceSheet")
+    clues = parse_sheets(root, CLUE_INDEX_PATH, "ClueSheet")
+    mysteries = parse_sheets(root, MYSTERIES_PATH, "MysterySheet", argument_count=2)
+    mystery_dependencies = parse_mystery_dependencies(root / MYSTERIES_PATH, mysteries)
     ordered_mysteries = mysteries_in_dependency_order(mysteries, mystery_dependencies)
-    configured_names = parse_configured_names(root)
+    configured_names = parse_configured_names(root / CHARACTER_CONFIG_PATH)
     character_collection = character_collection_tex(root, characters)
 
     character_ids = {character.entity_id for character in characters}
@@ -55,7 +63,7 @@ def build(root: Path, output: Path) -> dict[str, object]:
         character.entity_id: configured_names.get(character.entity_id, character.title)
         for character in characters
     }
-    relationship_items = find_relationship_items(root)
+    relationship_items = find_relationship_items(root / RELATIONSHIP_MAP_PATH)
     reference_counts: Counter[str] = Counter({identifier: 0 for identifier in character_ids})
     pair_counts: Counter[tuple[str, str]] = Counter()
     relationship_phrases: list[dict[str, object]] = []
@@ -102,10 +110,10 @@ def build(root: Path, output: Path) -> dict[str, object]:
     analysis: dict[str, object] = {
         "generated_by": GENERATED_BY,
         "source_files": {
-            "relationship_map": "content/relations-and-notes.tex",
-            "character_index": "content/characters/index.tex",
-            "character_config": "config/characters.tex",
-            "mysteries": "content/mysteries.tex",
+            "relationship_map": RELATIONSHIP_MAP_PATH.as_posix(),
+            "character_index": CHARACTER_INDEX_PATH.as_posix(),
+            "character_config": CHARACTER_CONFIG_PATH.as_posix(),
+            "mysteries": MYSTERIES_PATH.as_posix(),
         },
         "character_reference_counts": [
             {
