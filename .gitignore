@@ -9,5 +9,7 @@
 tmp/
 generated/
 
-config/characters.tex
+/config/characters.tex
 **/__pycache__/**
+
+/content/assets/space
