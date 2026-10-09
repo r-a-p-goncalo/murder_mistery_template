@@ -26,6 +26,8 @@ CHARACTER_RE = re.compile(r"\\Character\s*\{([^{}]+)\}")
 CONFIGURED_NAME_RE = re.compile(r"\\MMCharacterName\s*\{([^{}]+)\}\s*\{([^{}]+)\}")
 GM_NOTES_HEADING_RE = re.compile(r"\\paragraph\s*\{\s*GM\s+Notes\s*\}", flags=re.IGNORECASE)
 CHARACTER_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf")
+SPACE_PHOTO_DIRECTORY = Path("content/assets/space")
+SPACE_PHOTO_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf")
 
 
 @dataclass(frozen=True)
@@ -228,6 +230,23 @@ def character_image_path(root: Path, character_id: str) -> str:
     return tex_path(image.relative_to(root))
 
 
+def space_photo_paths(root: Path) -> list[str]:
+    """Return the supported space-photo files in a stable display order."""
+
+    image_directory = root / SPACE_PHOTO_DIRECTORY
+    if not image_directory.is_dir():
+        return []
+    images = sorted(
+        (
+            candidate
+            for candidate in image_directory.iterdir()
+            if candidate.is_file() and candidate.suffix.lower() in SPACE_PHOTO_SUFFIXES
+        ),
+        key=lambda candidate: candidate.name.casefold(),
+    )
+    return [tex_path(image.relative_to(root)) for image in images]
+
+
 def parse_mystery_dependencies(mysteries_path: Path, mysteries: list[Sheet]) -> list[tuple[str, str]]:
     """Read ``\\MysteryDependency{solve-first}{solve-next}`` declarations."""
 
@@ -314,6 +333,17 @@ def owned_write(path: Path, content: str) -> None:
             raise SourceError(f"Refusing to replace non-generated file: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def owned_unlink(path: Path) -> None:
+    """Remove a generated file without ever deleting an authored file."""
+
+    if not path.exists():
+        return
+    existing = read_text(path)
+    if not existing.startswith(GENERATED_MARKERS):
+        raise SourceError(f"Refusing to remove non-generated file: {path}")
+    path.unlink()
 
 
 def player_safe_rules(root: Path) -> str:

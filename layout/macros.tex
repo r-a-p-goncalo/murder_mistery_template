@@ -189,3 +189,13 @@
     \PackageWarning{murder-mystery}{Generated character collection is missing. Run python compile.py}%
   }%
 }
+
+% The gallery is generated from the supported image files in content/assets/space.
+% It is deliberately optional so a game can compile before venue photos are added.
+\newcommand{\ShowSpacePhotos}{%
+  \IfFileExists{generated/space_photos.tex}{%
+    \input{generated/space_photos}%
+  }{%
+    \textit{No image in assets\string\space}%
+  }%
+}

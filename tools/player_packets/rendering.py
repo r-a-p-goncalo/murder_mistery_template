@@ -19,6 +19,7 @@ from .source import (
     player_safe_rules,
     read_text,
     render_template,
+    space_photo_paths,
     tex_path,
 )
 
@@ -53,6 +54,22 @@ def character_collection_tex(root: Path, characters: list[Sheet]) -> str:
     return render_artifact_template(
         "character_collection.template.tex",
         {"GENERATOR_PATH": GENERATED_BY, "CHARACTER_ENTRIES": "\n".join(entries)},
+    )
+
+
+def space_photos_tex(root: Path) -> str | None:
+    """Render the space-photo gallery, or nothing when no photos are available."""
+
+    photo_paths = space_photo_paths(root)
+    if not photo_paths:
+        return None
+    entries = [
+        render_artifact_template("space_photo.template.tex", {"PHOTO_PATH": photo_path}).strip()
+        for photo_path in photo_paths
+    ]
+    return render_artifact_template(
+        "space_photo_collection.template.tex",
+        {"GENERATOR_PATH": GENERATED_BY, "PHOTO_ENTRIES": "\n".join(entries)},
     )
 
 

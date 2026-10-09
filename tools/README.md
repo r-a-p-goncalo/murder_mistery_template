@@ -25,6 +25,8 @@ Add `\shortdescription{...}` inside a `\CharacterSheet` to include that text in 
 
 The GM document checks for `generated/relationship_graph.svg`. When it is present, it renders the matching generated TikZ graph immediately after the relationship and GM notes; when it is absent, the document compiles without a graph.
 
+Put venue photos in `content/assets/space/` (PNG, JPG, JPEG, or PDF). The build creates `generated/space_photos.tex` from those files, using `tools/player_packets/templates/space_photo.template.tex` for each photo and `space_photo_collection.template.tex` for the gallery-wide layout. `\ShowSpacePhotos` includes that file when it exists; otherwise it displays `No image in assets\space`.
+
 Declare a mystery with its visible label and body only, then add ordering arrows separately:
 
 ```tex

@@ -29,6 +29,7 @@ from .rendering import (
     render_mystery_tikz,
     render_svg,
     render_tikz,
+    space_photos_tex,
 )
 from .source import (
     CHARACTER_RE,
@@ -37,6 +38,7 @@ from .source import (
     find_relationship_items,
     latex_to_plain,
     mysteries_in_dependency_order,
+    owned_unlink,
     owned_write,
     parse_configured_names,
     parse_mystery_dependencies,
@@ -57,6 +59,7 @@ def build(root: Path, output: Path) -> dict[str, object]:
     ordered_mysteries = mysteries_in_dependency_order(mysteries, mystery_dependencies)
     configured_names = parse_configured_names(root / CHARACTER_CONFIG_PATH)
     character_collection = character_collection_tex(root, characters)
+    space_photos = space_photos_tex(root)
 
     character_ids = {character.entity_id for character in characters}
     display_names = {
@@ -147,6 +150,10 @@ def build(root: Path, output: Path) -> dict[str, object]:
     owned_write(output / "mystery_order_graph.svg", render_mystery_svg(ordered_mysteries, mystery_dependencies))
     owned_write(output / "mystery_order_graph.tex", render_mystery_tikz(ordered_mysteries, mystery_dependencies))
     owned_write(output / "character_collection.tex", character_collection)
+    if space_photos is None:
+        owned_unlink(output / "space_photos.tex")
+    else:
+        owned_write(output / "space_photos.tex", space_photos)
     owned_write(output / "README.md", generated_readme())
 
     for character in characters:
