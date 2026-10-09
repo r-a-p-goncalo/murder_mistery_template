@@ -172,10 +172,10 @@ def parse_sheets(root: Path, index_relative_path: str, macro: str, argument_coun
     return sheets
 
 
-def parse_configured_names(root: Path) -> dict[str, str]:
+def parse_configured_names(config_path: Path) -> dict[str, str]:
     return {
         identifier.strip(): name.strip()
-        for identifier, name in CONFIGURED_NAME_RE.findall(read_text(root / "config/characters.tex"))
+        for identifier, name in CONFIGURED_NAME_RE.findall(read_text(config_path))
     }
 
 
@@ -228,12 +228,12 @@ def character_image_path(root: Path, character_id: str) -> str:
     return tex_path(image.relative_to(root))
 
 
-def parse_mystery_dependencies(root: Path, mysteries: list[Sheet]) -> list[tuple[str, str]]:
+def parse_mystery_dependencies(mysteries_path: Path, mysteries: list[Sheet]) -> list[tuple[str, str]]:
     """Read ``\\MysteryDependency{solve-first}{solve-next}`` declarations."""
 
     dependencies = [
         (arguments[0].strip(), arguments[1].strip())
-        for arguments, _ in extract_macro_calls(read_text(root / "content/mysteries.tex"), "MysteryDependency", 2)
+        for arguments, _ in extract_macro_calls(read_text(mysteries_path), "MysteryDependency", 2)
     ]
     known_labels = {mystery.entity_id for mystery in mysteries}
     unknown_labels = sorted({label for dependency in dependencies for label in dependency if label not in known_labels})
@@ -270,11 +270,11 @@ def mysteries_in_dependency_order(mysteries: list[Sheet], dependencies: list[tup
     return [by_label[label] for label in ordered_labels]
 
 
-def find_relationship_items(root: Path) -> list[str]:
-    source = read_text(root / "content/relations-and-notes.tex")
+def find_relationship_items(relationship_map_path: Path) -> list[str]:
+    source = read_text(relationship_map_path)
     heading = re.search(r"\\subsection\s*\{Relationship map\}", source)
     if not heading:
-        raise SourceError("content/relations-and-notes.tex has no 'Relationship map' subsection")
+        raise SourceError(f"{relationship_map_path} has no 'Relationship map' subsection")
     following_subsection = re.search(r"\\subsection\s*\{", source[heading.end() :])
     section = source[heading.end() : heading.end() + following_subsection.start()] if following_subsection else source[heading.end() :]
     match = re.search(r"\\begin\s*\{itemize\}(.*?)\\end\s*\{itemize\}", section, flags=re.DOTALL)
