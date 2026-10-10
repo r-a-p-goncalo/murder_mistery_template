@@ -128,15 +128,15 @@
   \fi
 }
 
-% The mystery label is deliberately also its visible name and \Mystery{...}
-% reference key.  This keeps a mystery declaration to a label and one body.
-\newcommand{\MysterySheet}[2]{%
+% A mystery's stable label is independent from its visible title. References
+% and dependencies use the label; the title is used in headings and graphs.
+\newcommand{\MysterySheet}[3]{%
   \ifMMRegistrationPass
     \stepcounter{mysteryCount}%
   \else
-    \subsubsection{#1}%
+    \subsubsection{#2}%
     \label{mystery:#1}%
-    #2%
+    #3%
   \fi
 }
 

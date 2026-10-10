@@ -54,7 +54,7 @@ def build(root: Path, output: Path) -> dict[str, object]:
     characters = parse_sheets(root, CHARACTER_INDEX_PATH, "CharacterSheet")
     spaces = parse_sheets(root, SPACE_INDEX_PATH, "SpaceSheet")
     clues = parse_sheets(root, CLUE_INDEX_PATH, "ClueSheet")
-    mysteries = parse_sheets(root, MYSTERIES_PATH, "MysterySheet", argument_count=2)
+    mysteries = parse_sheets(root, MYSTERIES_PATH, "MysterySheet")
     mystery_dependencies = parse_mystery_dependencies(root / MYSTERIES_PATH, mysteries)
     ordered_mysteries = mysteries_in_dependency_order(mysteries, mystery_dependencies)
     configured_names = parse_configured_names(root / CHARACTER_CONFIG_PATH)

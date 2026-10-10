@@ -157,11 +157,7 @@ def files_from_index(root: Path, index_file: Path) -> list[Path]:
 
 
 def parse_sheets(root: Path, index_relative_path: str, macro: str, argument_count: int = 3) -> list[Sheet]:
-    """Parse entity sheets whose first argument is an identifier.
-
-    Mysteries are intentionally different: their two-argument form uses the
-    first argument as both the visible label and the reference key.
-    """
+    """Parse entity sheets whose first argument is an identifier and second is a title."""
 
     sheets: list[Sheet] = []
     for source in files_from_index(root, root / index_relative_path):

@@ -27,12 +27,12 @@ The GM document checks for `generated/relationship_graph.svg`. When it is presen
 
 Put venue photos in `content/assets/space/` (PNG, JPG, JPEG, or PDF). The build creates `generated/space_photos.tex` from those files, using `tools/player_packets/templates/space_photo.template.tex` for each photo and `space_photo_collection.template.tex` for the gallery-wide layout. `\ShowSpacePhotos` includes that file when it exists; otherwise it displays `No image in assets\space`.
 
-Declare a mystery with its visible label and body only, then add ordering arrows separately:
+Declare a mystery with a stable label, visible title, and body, then add ordering arrows using the labels:
 
 ```tex
-\MysterySheet{How newcomer was killed}{...}
-\MysterySheet{Who killed newcomer}{...}
-\MysteryDependency{How newcomer was killed}{Who killed newcomer}
+\MysterySheet{how-newcomer-was-killed}{How newcomer was killed}{...}
+\MysterySheet{who-killed-newcomer}{Who killed newcomer}{...}
+\MysteryDependency{how-newcomer-was-killed}{who-killed-newcomer}
 ```
 
 The generator writes `generated/mystery_order.mmd` for Mermaid-compatible editors and matching SVG/TikZ graphs. The GM document includes the TikZ graph in its Mysteries section only when the generated SVG exists.
