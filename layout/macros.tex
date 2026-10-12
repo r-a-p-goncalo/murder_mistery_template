@@ -72,7 +72,12 @@
 \newcommand{\timestamp}[1]{\TimestampStyle{#1}}
 \newcommand{\outsideentity}[1]{\OutsideEntityStyle{#1}}
 \newcommand{\mainobjective}[1]{\MainObjectiveStyle{#1}}
-\newcommand{\shortdescription}[1]{\paragraph{Description}#1}
+\newcommand{\shortdescription}[1]{\paragraph{\MMStringDescription}#1}
+\newcommand{\GMNotes}[1]{\paragraph{\MMStringGMNotes}#1}
+% Keep headings that the generator needs to find language-neutral. Localized
+% content should retain these semantic commands and translate their strings.
+\newcommand{\MMRelationshipMapHeading}{\subsection{\MMStringRelationshipMap}}
+\newcommand{\MMHostGuidanceHeading}{\subsection{\MMStringHowToCreateAGame}}
 
 \newcommand{\GameTitlePage}{%
   \begin{titlepage}
@@ -146,23 +151,23 @@
 \newcommand{\MysteryDependency}[2]{}
 
 \newcommand{\RelationshipSummary}{%
-  \subsection{Entity summary}
-  There are \arabic{characterCount} characters.\par
-  There are \arabic{clueCount} clues.\par
-  There are \arabic{mysteryCount} mysteries.\par
+  \subsection{\MMStringEntitySummary}
+  \MMStringCharacterCount{\arabic{characterCount}}\par
+  \MMStringClueCount{\arabic{clueCount}}\par
+  \MMStringMysteryCount{\arabic{mysteryCount}}\par
 }
 
 % PDFLaTeX cannot embed SVG files directly. The generator writes a matching
 % TikZ rendering, but the SVG remains the source-of-truth presence check so a
 % normal game build simply omits the graph until relationship analysis exists.
 \newcommand{\RelationshipGraph}{%
-  \IfFileExists{generated/relationship_graph.svg}{%
-    \IfFileExists{generated/relationship_graph.tex}{%
+  \IfFileExists{\MMGeneratedDirectory/relationship_graph.svg}{%
+    \IfFileExists{\MMGeneratedDirectory/relationship_graph.tex}{%
       \clearpage
-      \subsection{Relationship graph}
-      \input{generated/relationship_graph.tex}%
+      \subsection{\MMStringRelationshipGraph}
+      \input{\MMGeneratedDirectory/relationship_graph.tex}%
     }{%
-      \PackageWarning{murder-mystery}{Relationship SVG exists but generated/relationship_graph.tex is missing. Run python compile.py}%
+      \PackageWarning{murder-mystery}{Relationship SVG exists but its TikZ companion is missing. Run python compile.py}%
     }%
   }{}%
 }
@@ -170,12 +175,12 @@
 % As with the relationship graph, SVG is the existence check and the matching
 % generated TikZ is the PDFLaTeX-native rendering.
 \newcommand{\MysteryOrderGraph}{%
-  \IfFileExists{generated/mystery_order_graph.svg}{%
-    \IfFileExists{generated/mystery_order_graph.tex}{%
-      \subsubsection{Mystery resolution order}%
-      \input{generated/mystery_order_graph.tex}%
+  \IfFileExists{\MMGeneratedDirectory/mystery_order_graph.svg}{%
+    \IfFileExists{\MMGeneratedDirectory/mystery_order_graph.tex}{%
+      \subsubsection{\MMStringMysteryResolutionOrder}%
+      \input{\MMGeneratedDirectory/mystery_order_graph.tex}%
     }{%
-      \PackageWarning{murder-mystery}{Mystery-order SVG exists but generated/mystery_order_graph.tex is missing. Run python compile.py}%
+      \PackageWarning{murder-mystery}{Mystery-order SVG exists but its TikZ companion is missing. Run python compile.py}%
     }%
   }{}%
 }
@@ -183,8 +188,8 @@
 % The character overview is generated from player-safe data and appears before
 % the complete character sheets when available.
 \newcommand{\CharacterCollection}{%
-  \IfFileExists{generated/character_collection.tex}{%
-    \input{generated/character_collection}%
+  \IfFileExists{\MMGeneratedDirectory/character_collection.tex}{%
+    \input{\MMGeneratedDirectory/character_collection}%
   }{%
     \PackageWarning{murder-mystery}{Generated character collection is missing. Run python compile.py}%
   }%
@@ -193,9 +198,9 @@
 % The gallery is generated from the supported image files in content/assets/space.
 % It is deliberately optional so a game can compile before venue photos are added.
 \newcommand{\ShowSpacePhotos}{%
-  \IfFileExists{generated/space_photos.tex}{%
-    \input{generated/space_photos}%
+  \IfFileExists{\MMGeneratedDirectory/space_photos.tex}{%
+    \input{\MMGeneratedDirectory/space_photos}%
   }{%
-    \textit{No image in assets\string\space}%
+    \textit{\MMStringNoSpaceImages}%
   }%
 }

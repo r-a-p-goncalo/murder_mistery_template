@@ -43,30 +43,36 @@ from .source import (
     parse_configured_names,
     parse_mystery_dependencies,
     parse_sheets,
+    source_path,
+    validate_language,
+    verify_language_pack,
 )
 
 
-def build(root: Path, output: Path) -> dict[str, object]:
+def build(root: Path, output: Path, language: str = "en") -> dict[str, object]:
     """Generate every derived asset needed by the main document and players."""
 
     root = root.resolve()
     output = output.resolve()
-    characters = parse_sheets(root, CHARACTER_INDEX_PATH, "CharacterSheet")
-    spaces = parse_sheets(root, SPACE_INDEX_PATH, "SpaceSheet")
-    clues = parse_sheets(root, CLUE_INDEX_PATH, "ClueSheet")
-    mysteries = parse_sheets(root, MYSTERIES_PATH, "MysterySheet")
-    mystery_dependencies = parse_mystery_dependencies(root / MYSTERIES_PATH, mysteries)
+    language = validate_language(language)
+    characters = parse_sheets(root, CHARACTER_INDEX_PATH, "CharacterSheet", language=language)
+    spaces = parse_sheets(root, SPACE_INDEX_PATH, "SpaceSheet", language=language)
+    clues = parse_sheets(root, CLUE_INDEX_PATH, "ClueSheet", language=language)
+    mysteries = parse_sheets(root, MYSTERIES_PATH, "MysterySheet", language=language)
+    mysteries_path = source_path(root, MYSTERIES_PATH, language)
+    mystery_dependencies = parse_mystery_dependencies(mysteries_path, mysteries)
     ordered_mysteries = mysteries_in_dependency_order(mysteries, mystery_dependencies)
-    configured_names = parse_configured_names(root / CHARACTER_CONFIG_PATH)
-    character_collection = character_collection_tex(root, characters)
-    space_photos = space_photos_tex(root)
+    configured_names = parse_configured_names(source_path(root, CHARACTER_CONFIG_PATH, language))
+    character_collection = character_collection_tex(root, characters, language)
+    space_photos = space_photos_tex(root, language)
 
     character_ids = {character.entity_id for character in characters}
     display_names = {
         character.entity_id: configured_names.get(character.entity_id, character.title)
         for character in characters
     }
-    relationship_items = find_relationship_items(root / RELATIONSHIP_MAP_PATH)
+    relationship_map_path = source_path(root, RELATIONSHIP_MAP_PATH, language)
+    relationship_items = find_relationship_items(relationship_map_path)
     reference_counts: Counter[str] = Counter({identifier: 0 for identifier in character_ids})
     pair_counts: Counter[tuple[str, str]] = Counter()
     relationship_phrases: list[dict[str, object]] = []
@@ -112,11 +118,12 @@ def build(root: Path, output: Path) -> dict[str, object]:
 
     analysis: dict[str, object] = {
         "generated_by": GENERATED_BY,
+        "language": language,
         "source_files": {
-            "relationship_map": RELATIONSHIP_MAP_PATH.as_posix(),
-            "character_index": CHARACTER_INDEX_PATH.as_posix(),
-            "character_config": CHARACTER_CONFIG_PATH.as_posix(),
-            "mysteries": MYSTERIES_PATH.as_posix(),
+            "relationship_map": relationship_map_path.relative_to(root).as_posix(),
+            "character_index": source_path(root, CHARACTER_INDEX_PATH, language).relative_to(root).as_posix(),
+            "character_config": source_path(root, CHARACTER_CONFIG_PATH, language).relative_to(root).as_posix(),
+            "mysteries": mysteries_path.relative_to(root).as_posix(),
         },
         "character_reference_counts": [
             {
@@ -144,22 +151,22 @@ def build(root: Path, output: Path) -> dict[str, object]:
     }
     owned_write(output / "relationship_analysis.json", json.dumps(analysis, ensure_ascii=False, indent=2) + "\n")
     owned_write(output / "relationship_graph.dot", render_dot(display_names, pair_counts))
-    owned_write(output / "relationship_graph.svg", render_svg(characters, display_names, pair_counts))
+    owned_write(output / "relationship_graph.svg", render_svg(root, language, characters, display_names, pair_counts))
     owned_write(output / "relationship_graph.tex", render_tikz(characters, display_names, pair_counts))
     owned_write(output / "mystery_order.mmd", render_mystery_mermaid(ordered_mysteries, mystery_dependencies))
-    owned_write(output / "mystery_order_graph.svg", render_mystery_svg(ordered_mysteries, mystery_dependencies))
+    owned_write(output / "mystery_order_graph.svg", render_mystery_svg(root, language, ordered_mysteries, mystery_dependencies))
     owned_write(output / "mystery_order_graph.tex", render_mystery_tikz(ordered_mysteries, mystery_dependencies))
     owned_write(output / "character_collection.tex", character_collection)
     if space_photos is None:
         owned_unlink(output / "space_photos.tex")
     else:
         owned_write(output / "space_photos.tex", space_photos)
-    owned_write(output / "README.md", generated_readme())
+    owned_write(output / "README.md", generated_readme(root, language))
 
     for character in characters:
         owned_write(
             output / "players" / character.entity_id / "player_packet.tex",
-            packet_tex(root, character, characters, spaces, clues, mysteries, character_collection),
+            packet_tex(root, language, character, characters, spaces, clues, mysteries, character_collection),
         )
 
     return analysis
@@ -177,7 +184,13 @@ def parse_args() -> argparse.Namespace:
         "--output",
         type=Path,
         default=Path("generated"),
-        help="output directory, relative to --root unless absolute (default: generated)",
+        help="base output directory, relative to --root unless absolute (default: generated)",
+    )
+    parser.add_argument("--language", default="en", help="language pack to build (default: en)")
+    parser.add_argument(
+        "--strict-language",
+        action="store_true",
+        help="require every path listed in languages/<locale>/manifest.txt",
     )
     return parser.parse_args()
 
@@ -185,15 +198,19 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     arguments = parse_args()
     root = arguments.root.resolve()
-    output = arguments.output if arguments.output.is_absolute() else root / arguments.output
     try:
-        analysis = build(root, output)
+        language = validate_language(arguments.language)
+        output_base = arguments.output if arguments.output.is_absolute() else root / arguments.output
+        output = output_base / language
+        if arguments.strict_language:
+            verify_language_pack(root, language)
+        analysis = build(root, output, language)
     except SourceError as error:
         print(f"Generation failed: {error}", file=sys.stderr)
         return 1
 
     characters = analysis["character_reference_counts"]
     pairs = analysis["pair_reference_counts"]
-    print(f"Generated analysis and {len(characters)} player packets in {output.resolve()}")
+    print(f"Generated {language} analysis and {len(characters)} player packets in {output.resolve()}")
     print(f"Analysed {len(analysis['relationship_map_entries'])} Relationship map entries and {len(pairs)} character pairs.")
     return 0
