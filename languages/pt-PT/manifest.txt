@@ -1,0 +1,21 @@
+# Full-file overlays required before --strict-language can pass for pt-PT.
+# Keep the same path under languages/pt-PT/ and leave structural index files
+# in the default tree: their \MMInput calls will still select these overlays.
+strings.tex
+config/game.tex
+config/characters.tex
+content/background/common-background.tex
+content/background/complete-background.tex
+content/background/recent-background.tex
+content/characters/example-character.tex
+content/clues/example-clue.tex
+content/game_components.tex
+content/game_planning/game-plan.tex
+content/game_planning/mysteries.tex
+content/game_planning/mockup-play.tex
+content/game_planning/relations-and-notes.tex
+content/general_rules.tex
+content/gm_rules.tex
+content/spaces/example-space.tex
+content/spacestudy/space_notes.tex
+content/spacestudy/space_study.tex

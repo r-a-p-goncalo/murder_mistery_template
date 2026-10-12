@@ -1,0 +1,4 @@
+# Required files for a strict English build. The English authored source tree
+# is the default fallback, so only its language-pack interface strings live
+# here.
+strings.tex

@@ -1,8 +1,22 @@
 % Packages and document-wide presentation settings.
+% ``compile.py --language <locale>`` defines these before it loads the root
+% document. Direct compilation remains an English build with English derived
+% assets, which makes the root file useful on its own as well.
+\providecommand{\MMLanguage}{en}
+\providecommand{\MMGeneratedDirectory}{generated/en}
+\newcommand{\MMInput}[1]{%
+  \IfFileExists{languages/\MMLanguage/#1}{%
+    \input{languages/\MMLanguage/#1}%
+  }{%
+    \input{#1}%
+  }%
+}
+
 \usepackage[margin=2.2cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
+\usepackage[english,portuguese]{babel}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage{titlesec}
@@ -12,6 +26,20 @@
 \usepackage{multicol}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric}
+
+% TeX's babel names and project locale names serve different purposes. Keep
+% the mapping here so the source tree can use unambiguous BCP 47-style names.
+\def\MMEnglishLocale{en}
+\def\MMPortuguesePortugalLocale{pt-PT}
+\edef\MMSelectedLanguage{\MMLanguage}
+\ifx\MMSelectedLanguage\MMEnglishLocale
+  \selectlanguage{english}
+\else\ifx\MMSelectedLanguage\MMPortuguesePortugalLocale
+  \selectlanguage{portuguese}
+\else
+  \PackageError{murder-mystery}{Unsupported language `\MMLanguage'}%
+    {Add its babel mapping to layout/preamble.tex and create languages/\MMLanguage/strings.tex.}%
+\fi\fi
 
 \definecolor{ink}{HTML}{25202A}
 \definecolor{wine}{HTML}{6E2034}

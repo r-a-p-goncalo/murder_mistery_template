@@ -14,66 +14,76 @@ from .source import (
     Sheet,
     character_image_path,
     character_short_description,
+    language_file,
     latex_to_plain,
     player_safe_character_sheet,
     player_safe_rules,
     read_text,
     render_template,
     space_photo_paths,
+    source_path,
     tex_path,
 )
 
 
-TEMPLATE_DIRECTORY = Path(__file__).with_name("templates")
+TEMPLATE_DIRECTORY = Path("tools/player_packets/templates")
 
 
-def render_artifact_template(name: str, values: dict[str, str]) -> str:
-    """Render one static generated-artifact template."""
+def render_artifact_template(root: Path, language: str, name: str, values: dict[str, str]) -> str:
+    """Render one template, allowing a language pack to overlay its layout."""
 
-    return render_template(TEMPLATE_DIRECTORY / name, values)
-
-
-def generated_readme() -> str:
-    return render_artifact_template("generated_readme.template.md", {"GENERATOR_PATH": GENERATED_BY})
+    return render_template(source_path(root, TEMPLATE_DIRECTORY / name, language), values)
 
 
-def character_collection_tex(root: Path, characters: list[Sheet]) -> str:
+def generated_readme(root: Path, language: str) -> str:
+    return render_artifact_template(root, language, "generated_readme.template.md", {"GENERATOR_PATH": GENERATED_BY})
+
+
+def character_collection_tex(root: Path, characters: list[Sheet], language: str) -> str:
     """Render the player-safe character overview page shared by every document."""
 
     entries = [
         render_artifact_template(
+            root,
+            language,
             "character_short.template.tex",
             {
                 "CHARACTER_ID": character.entity_id,
-                "IMAGE_PATH": character_image_path(root, character.entity_id),
+                "IMAGE_PATH": character_image_path(root, character.entity_id, language),
                 "SHORT_DESCRIPTION": character_short_description(character),
             },
         ).strip()
         for character in characters
     ]
     return render_artifact_template(
+        root,
+        language,
         "character_collection.template.tex",
         {"GENERATOR_PATH": GENERATED_BY, "CHARACTER_ENTRIES": "\n".join(entries)},
     )
 
 
-def space_photos_tex(root: Path) -> str | None:
+def space_photos_tex(root: Path, language: str) -> str | None:
     """Render the space-photo gallery, or nothing when no photos are available."""
 
-    photo_paths = space_photo_paths(root)
+    photo_paths = space_photo_paths(root, language)
     if not photo_paths:
         return None
     entries = [
-        render_artifact_template("space_photo.template.tex", {"PHOTO_PATH": photo_path}).strip()
+        render_artifact_template(root, language, "space_photo.template.tex", {"PHOTO_PATH": photo_path}).strip()
         for photo_path in photo_paths
     ]
     return render_artifact_template(
+        root,
+        language,
         "space_photo_collection.template.tex",
         {"GENERATOR_PATH": GENERATED_BY, "PHOTO_ENTRIES": "\n".join(entries)},
     )
 
 
 def render_svg(
+    root: Path,
+    language: str,
     characters: list[Sheet],
     display_names: dict[str, str],
     pair_counts: Counter[tuple[str, str]],
@@ -95,6 +105,8 @@ def render_svg(
         stroke_width = 1.2 + 7.0 * strength
         edge_parts.append(
             render_artifact_template(
+                root,
+                language,
                 "relationship_edge.template.svg",
                 {
                     "X1": f"{x1:.1f}",
@@ -109,6 +121,8 @@ def render_svg(
         midpoint_x, midpoint_y = (x1 + x2) / 2, (y1 + y2) / 2
         edge_parts.append(
             render_artifact_template(
+                root,
+                language,
                 "relationship_edge_label.template.svg",
                 {"X": f"{midpoint_x:.1f}", "Y": f"{midpoint_y - 5:.1f}", "WEIGHT": str(weight)},
             ).strip()
@@ -121,6 +135,8 @@ def render_svg(
         role = html.escape(latex_to_plain(character.title))
         node_parts.append(
             render_artifact_template(
+                root,
+                language,
                 "relationship_node.template.svg",
                 {
                     "X": f"{x:.1f}",
@@ -134,6 +150,8 @@ def render_svg(
         )
 
     return render_artifact_template(
+        root,
+        language,
         "relationship_graph.template.svg",
         {
             "GENERATOR_PATH": GENERATED_BY,
@@ -228,7 +246,12 @@ def render_mystery_mermaid(mysteries: list[Sheet], dependencies: list[tuple[str,
     return "\n".join(lines) + "\n"
 
 
-def render_mystery_svg(mysteries: list[Sheet], dependencies: list[tuple[str, str]]) -> str:
+def render_mystery_svg(
+    root: Path,
+    language: str,
+    mysteries: list[Sheet],
+    dependencies: list[tuple[str, str]],
+) -> str:
     """Render a compact SVG fallback from the same dependency declarations."""
 
     width = 840
@@ -241,6 +264,8 @@ def render_mystery_svg(mysteries: list[Sheet], dependencies: list[tuple[str, str
     for before, after in dependencies:
         edge_parts.append(
             render_artifact_template(
+                root,
+                language,
                 "mystery_order_edge.template.svg",
                 {
                     "CENTER_X": f"{center_x:.0f}",
@@ -255,6 +280,8 @@ def render_mystery_svg(mysteries: list[Sheet], dependencies: list[tuple[str, str
         label = html.escape(latex_to_plain(mystery.title))
         node_parts.append(
             render_artifact_template(
+                root,
+                language,
                 "mystery_order_node.template.svg",
                 {
                     "X": f"{center_x - node_width / 2:.0f}",
@@ -268,6 +295,8 @@ def render_mystery_svg(mysteries: list[Sheet], dependencies: list[tuple[str, str
             ).strip()
         )
     return render_artifact_template(
+        root,
+        language,
         "mystery_order_graph.template.svg",
         {
             "GENERATOR_PATH": GENERATED_BY,
@@ -300,6 +329,7 @@ def render_mystery_tikz(mysteries: list[Sheet], dependencies: list[tuple[str, st
 
 def packet_tex(
     root: Path,
+    language: str,
     character: Sheet,
     characters: list[Sheet],
     spaces: list[Sheet],
@@ -309,7 +339,7 @@ def packet_tex(
 ) -> str:
     """Create a standalone snapshot with public rules and one sheet."""
 
-    entity_template = root / PLAYER_PACKET_ENTITY_TEMPLATE
+    entity_template = source_path(root, PLAYER_PACKET_ENTITY_TEMPLATE, language)
     declarations: list[str] = []
     for kind, sheets in (("character", characters), ("space", spaces), ("clue", clues), ("mystery", mysteries)):
         for sheet in sheets:
@@ -321,16 +351,18 @@ def packet_tex(
             )
 
     return render_template(
-        root / PLAYER_PACKET_TEMPLATE,
+        source_path(root, PLAYER_PACKET_TEMPLATE, language),
         {
             "GENERATOR_PATH": GENERATED_BY,
+            "LANGUAGE": language,
             "SOURCE_PATH": tex_path(character.source.relative_to(root)),
             "CHARACTER_ID": character.entity_id,
-            "PREAMBLE": read_text(root / "layout/preamble.tex").strip(),
-            "CONFIGURED_NAMES": read_text(root / "config/characters.tex").strip(),
-            "GAME_CONFIG": read_text(root / "config/game.tex").strip(),
+            "PREAMBLE": read_text(source_path(root, "layout/preamble.tex", language)).strip(),
+            "STRINGS": read_text(language_file(root, language, "strings.tex")).strip(),
+            "CONFIGURED_NAMES": read_text(source_path(root, "config/characters.tex", language)).strip(),
+            "GAME_CONFIG": read_text(source_path(root, "config/game.tex", language)).strip(),
             "ENTITY_DECLARATIONS": "\n".join(declarations),
-            "PUBLIC_RULES": player_safe_rules(root),
+            "PUBLIC_RULES": player_safe_rules(root, language),
             "CHARACTER_COLLECTION": character_collection,
             "CHARACTER_SHEET": player_safe_character_sheet(character),
         },
