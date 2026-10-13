@@ -185,6 +185,16 @@
   }{}%
 }
 
+\newcommand{\ClueImage}[2]{%
+  \IfFileExists{#1}{%
+    \begin{center}
+      \includegraphics[width=#2,keepaspectratio]{#1}%
+    \end{center}%
+  }{%
+    \PackageWarning{murder-mystery}{Clue image `#1' not found; omitting it}%
+  }%
+}
+
 % The character overview is generated from player-safe data and appears before
 % the complete character sheets when available.
 \newcommand{\CharacterCollection}{%
