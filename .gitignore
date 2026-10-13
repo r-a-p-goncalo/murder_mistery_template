@@ -13,3 +13,7 @@ generated/
 **/__pycache__/**
 
 /content/assets/space
+
+*.png
+*.jpg
+*.mp3
