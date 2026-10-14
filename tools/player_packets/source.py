@@ -28,11 +28,8 @@ INPUT_RE = re.compile(r"\\(?:MMInput|input)\s*\{([^{}]+)\}")
 CHARACTER_RE = re.compile(r"\\Character\s*\{([^{}]+)\}")
 CONFIGURED_NAME_RE = re.compile(r"\\MMCharacterName\s*\{([^{}]+)\}\s*\{([^{}]+)\}")
 LANGUAGE_RE = re.compile(r"[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*")
-LEGACY_GM_NOTES_HEADING_RE = re.compile(r"\\paragraph\s*\{\s*GM\s+Notes\s*\}", flags=re.IGNORECASE)
 RELATIONSHIP_MAP_HEADING_RE = re.compile(r"\\MMRelationshipMapHeading\b")
-LEGACY_RELATIONSHIP_MAP_HEADING_RE = re.compile(r"\\subsection\s*\{Relationship map\}")
 HOST_GUIDANCE_HEADING_RE = re.compile(r"^\\MMHostGuidanceHeading\b", flags=re.MULTILINE)
-LEGACY_HOST_GUIDANCE_HEADING_RE = re.compile(r"^\\subsection\s*\{How to create a game\}", flags=re.MULTILINE)
 CHARACTER_IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf")
 SPACE_PHOTO_DIRECTORY = Path("content/assets/space")
 SPACE_PHOTO_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf")
@@ -301,9 +298,9 @@ def character_short_description(character: Sheet) -> str:
 
 
 def player_safe_character_sheet(character: Sheet) -> str:
-    """Return a character sheet with its trailing GM Notes section omitted.
+    """Return a character sheet with its trailing ``\\GMNotes`` section omitted.
 
-    GM Notes are deliberately authored as the final paragraph of a character
+    ``\\GMNotes`` is deliberately authored as the final section of a character
     sheet. The main document retains them, while this copy is used only in the
     player's individual packet.
     """
@@ -323,14 +320,7 @@ def player_safe_character_sheet(character: Sheet) -> str:
             raise SourceError(f"Character '{character.entity_id}' must put \\GMNotes at the end of its sheet")
         player_body = body[:position].rstrip()
     else:
-        # Backwards compatibility for existing English sheets. New sheets
-        # should use \GMNotes so the marker itself is translated safely.
-        headings = list(LEGACY_GM_NOTES_HEADING_RE.finditer(body))
-        if len(headings) > 1:
-            raise SourceError(f"Character '{character.entity_id}' declares more than one GM Notes section")
-        if not headings:
-            return character.latex
-        player_body = body[: headings[0].start()].rstrip()
+        return character.latex
     return f"\\CharacterSheet{{{arguments[0]}}}{{{arguments[1]}}}{{\n{player_body}\n}}"
 
 
@@ -412,14 +402,16 @@ def mysteries_in_dependency_order(mysteries: list[Sheet], dependencies: list[tup
 
 def find_relationship_items(relationship_map_path: Path) -> list[str]:
     source = read_text(relationship_map_path)
-    heading = RELATIONSHIP_MAP_HEADING_RE.search(source) or LEGACY_RELATIONSHIP_MAP_HEADING_RE.search(source)
+    heading = RELATIONSHIP_MAP_HEADING_RE.search(source)
+
     if not heading:
-        raise SourceError(f"{relationship_map_path} has no 'Relationship map' subsection")
+        raise SourceError(f"{relationship_map_path} has no 'Atomic facts' subsection")
+
     following_subsection = re.search(r"\\subsection\s*\{", source[heading.end() :])
     section = source[heading.end() : heading.end() + following_subsection.start()] if following_subsection else source[heading.end() :]
     match = re.search(r"\\begin\s*\{itemize\}(.*?)\\end\s*\{itemize\}", section, flags=re.DOTALL)
     if not match:
-        raise SourceError("The Relationship map subsection must contain an itemize environment")
+        raise SourceError("The Atomic facts subsection must contain an itemize environment")
     items = re.split(r"\\item(?:\s*\[[^\]]*\])?", match.group(1))
     return [re.sub(r"\s+", " ", item).strip() for item in items[1:] if item.strip()]
 
@@ -473,12 +465,11 @@ def player_safe_rules(root: Path, language: str = DEFAULT_LANGUAGE) -> str:
     source = read_text(source_path(root, "content/general_rules.tex", language))
     gm_rules = read_text(source_path(root, "content/gm_rules.tex", language))
     host_guidance = HOST_GUIDANCE_HEADING_RE
-    legacy_host_guidance = LEGACY_HOST_GUIDANCE_HEADING_RE
 
-    if host_guidance.search(source) or legacy_host_guidance.search(source):
+    if host_guidance.search(source):
         raise SourceError(
             "Host guidance belongs in content/gm_rules.tex, not content/general_rules.tex"
         )
-    if not (host_guidance.search(gm_rules) or legacy_host_guidance.search(gm_rules)):
+    if not host_guidance.search(gm_rules):
         raise SourceError("content/gm_rules.tex must mark host guidance with \\MMHostGuidanceHeading")
     return source.rstrip()
