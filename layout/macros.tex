@@ -70,13 +70,25 @@
 
 % Consistent inline formatting for times and entities without their own sheet.
 \newcommand{\timestamp}[1]{\TimestampStyle{#1}}
+
 \newcommand{\outsideentity}[1]{\OutsideEntityStyle{#1}}
+
 \newcommand{\mainobjective}[1]{\MainObjectiveStyle{#1}}
+
 \newcommand{\shortdescription}[1]{\paragraph{\MMStringDescription}#1}
+
 \newcommand{\GMNotes}[1]{\paragraph{\MMStringGMNotes}#1}
 % Keep headings that the generator needs to find language-neutral. Localized
 % content should retain these semantic commands and translate their strings.
-\newcommand{\MMRelationshipMapHeading}{\subsection{\MMStringRelationshipMap}}
+
+\newcommand{\MMRelationshipMapHeading}{
+\subsection{\MMStringRelationshipMap}\label{subsec:atomic_facts}
+}
+
+\newcommand{\MMBackgroundHeading}{
+\subsection{\MMStringBackground}\label{subsec:background}
+}
+
 \newcommand{\MMHostGuidanceHeading}{\subsection{\MMStringHowToCreateAGame}}
 
 \newcommand{\GameTitlePage}{%
