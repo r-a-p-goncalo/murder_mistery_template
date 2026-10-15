@@ -18,11 +18,13 @@ Losing conditions are outcomes that disqualify a character from the final score,
 \SecretsHeading{Secrets}
 Secrets are facts that other players may discover.
 
-If a secret has the reward in the form of (\NegativeReward{1}, \PositiveReward{1}), it is showing first the negative reward this character receives if at least one other plays finds out this secret (\NegativeReward{1}) and then showing the positive reward awarded for players that find this secret (\PositiveReward{1}).
+If a secret has the reward in the form of (\NegativeReward{X}, \PositiveReward{Y}), it is showing first the negative reward this character receives if at least one other plays finds out this secret (\NegativeReward{X}) and then showing the positive reward awarded for players that find this secret (\PositiveReward{Y}).
 
-If a secret has the form of (\PositiveReward{1}, \NegativeReward{1}), it is fake. For each other player that says this is this character's secret, this character receives \PositiveReward{1}. Each of those players then receive the penalty \NegativeReward{1}. 
+If a secret has the form of (\PositiveReward{X}, \NegativeReward{Y}), it is fake. For each other player that says this is this character's secret, this character receives \PositiveReward{X}. Each of those players then receive the penalty \NegativeReward{Y}. 
 
-This is only processed at the end of the game.
+Even without a secret of the form of (\PositiveReward{X}, \NegativeReward{Y}), if a player says that this character has a secret that totally contradicts all of its true secrets, that player receives a negative reward of \NegativeReward{1} and this character's player a positive reward of \PositiveReward{1}.
+
+The secrets are only processed at the end of the game, when players can disclose to the GM \textbf{5} secrets they believe they found out.
 
 \ActionsHeading{Actions}
 Actions are behaviors or tasks the player should perform, or at least strongly consider, during the game. They give the roleplay texture and help move the story forward.
