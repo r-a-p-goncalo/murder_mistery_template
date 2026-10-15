@@ -401,6 +401,13 @@ def mysteries_in_dependency_order(mysteries: list[Sheet], dependencies: list[tup
 
 
 def find_relationship_items(relationship_map_path: Path) -> list[str]:
+    """Return atomic facts, omitting unnumbered list headings.
+
+    Authors can divide a long fact list with ``\\item[]`` headings.  Those
+    headings belong in the rendered document, but are not relationship-map
+    entries and must not appear as empty records in the generated analysis.
+    """
+
     source = read_text(relationship_map_path)
     heading = RELATIONSHIP_MAP_HEADING_RE.search(source)
 
@@ -412,8 +419,20 @@ def find_relationship_items(relationship_map_path: Path) -> list[str]:
     match = re.search(r"\\begin\s*\{itemize\}(.*?)\\end\s*\{itemize\}", section, flags=re.DOTALL)
     if not match:
         raise SourceError("The Atomic facts subsection must contain an itemize environment")
-    items = re.split(r"\\item(?:\s*\[[^\]]*\])?", match.group(1))
-    return [re.sub(r"\s+", " ", item).strip() for item in items[1:] if item.strip()]
+
+    item_pattern = re.compile(r"\\item(?![A-Za-z@])(?:\s*\[(?P<label>[^\]]*)\])?")
+    list_source = match.group(1)
+    markers = list(item_pattern.finditer(list_source))
+    items: list[str] = []
+    for index, marker in enumerate(markers):
+        # ``\item[]`` is an unnumbered visual separator, not an atomic fact.
+        if marker.group("label") is not None and not marker.group("label").strip():
+            continue
+        end = markers[index + 1].start() if index + 1 < len(markers) else len(list_source)
+        item = re.sub(r"\s+", " ", list_source[marker.end() : end]).strip()
+        if item:
+            items.append(item)
+    return items
 
 
 def latex_to_plain(text: str) -> str:

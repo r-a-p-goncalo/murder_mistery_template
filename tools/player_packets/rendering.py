@@ -360,6 +360,7 @@ def packet_tex(
             "PREAMBLE": read_text(source_path(root, "layout/preamble.tex", language)).strip(),
             "STRINGS": read_text(language_file(root, language, "strings.tex")).strip(),
             "CONFIGURED_NAMES": read_text(source_path(root, "config/characters.tex", language)).strip(),
+            "STYLE": read_text(source_path(root, "config/style.tex", language)).strip(),
             "GAME_CONFIG": read_text(source_path(root, "config/game.tex", language)).strip(),
             "ENTITY_DECLARATIONS": "\n".join(declarations),
             "PUBLIC_RULES": player_safe_rules(root, language),

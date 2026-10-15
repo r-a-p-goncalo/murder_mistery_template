@@ -57,7 +57,7 @@
 }
 \makeatother
 
-% Raw names are useful in headings; references apply the styles configured in config/game.tex.
+% Raw names are useful in headings; references apply the styles configured in config/style.tex.
 \newcommand{\CharacterName}[1]{\MMNamedEntity{character}{#1}}
 \newcommand{\SpaceName}[1]{\MMNamedEntity{space}{#1}}
 \newcommand{\ClueName}[1]{\MMNamedEntity{clue}{#1}}
@@ -74,6 +74,11 @@
 \newcommand{\outsideentity}[1]{\OutsideEntityStyle{#1}}
 
 \newcommand{\mainobjective}[1]{\MainObjectiveStyle{#1}}
+
+% Inline reward values use configurable positive and negative treatments.
+\newcommand{\PositiveReward}[1]{\PositiveRewardStyle{+#1}}
+
+\newcommand{\NegativeReward}[1]{\NegativeRewardStyle{-#1}}
 
 \newcommand{\shortdescription}[1]{\paragraph{\MMStringDescription}#1}
 
