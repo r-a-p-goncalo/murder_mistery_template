@@ -52,7 +52,13 @@
 \newcommand{\mainobjective}[1]{\MainObjectiveStyle{#1}}
 \newcommand{\PositiveReward}[1]{\PositiveRewardStyle{+#1}}
 \newcommand{\NegativeReward}[1]{\NegativeRewardStyle{-#1}}
-\newcommand{\shortdescription}[1]{\paragraph{\MMStringDescription}#1}
+\newcommand{\ObjectivesHeading}[1]{\subsubsection*{\ObjectivesHeadingStyle{#1}}}
+\newcommand{\LosingConditionsHeading}[1]{\subsubsection*{\LosingConditionsHeadingStyle{#1}}}
+\newcommand{\SecretsHeading}[1]{\subsubsection*{\SecretsHeadingStyle{#1}}}
+\newcommand{\ActionsHeading}[1]{\subsubsection*{\ActionsHeadingStyle{#1}}}
+\newcommand{\BackgroundHeading}[1]{\subsubsection*{\BackgroundHeadingStyle{#1}}}
+\newcommand{\DescriptionHeading}[1]{\paragraph{\DescriptionHeadingStyle{#1}}}
+\newcommand{\shortdescription}[1]{\DescriptionHeading{\MMStringDescription}#1}
 \newcommand{\GMNotes}[1]{}
 \newcommand{\CharacterSheet}[3]{%
   \subsection{#2: \CharacterReferenceStyle{\CharacterName{#1}}}%

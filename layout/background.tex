@@ -1,0 +1,37 @@
+% Background rendering depends on graphicx and TikZ, which are loaded by
+% layout/preamble.tex.  Its image and default-opacity settings live in
+% config/style.tex, and are expanded when a page is shipped out.
+\makeatletter
+\newcommand{\MMBackgroundOpacity}{\DefaultBackgroundOpacity}
+\newif\ifMMBackgroundOpacityOverridden
+\MMBackgroundOpacityOverriddenfalse
+
+% Render the configured image behind the full physical page.  The empty image
+% path used by a style configuration disables backgrounds without an error.
+\newcommand{\MMRenderPageBackground}{%
+  \ifx\BackgroundImagePath\@empty
+  \else
+    \begin{tikzpicture}[remember picture, overlay]
+      \node[opacity=\MMBackgroundOpacity] at (current page.center) {%
+        \includegraphics[width=\paperwidth, height=\paperheight]{\BackgroundImagePath}%
+      };%
+    \end{tikzpicture}%
+  \fi
+}
+
+% Use \changebackground{<opacity>} before the page break for the one page
+% being completed.  Once that page has shipped out, the default opacity is
+% restored automatically.
+\newcommand{\changebackground}[1]{%
+  \gdef\MMBackgroundOpacity{#1}%
+  \global\MMBackgroundOpacityOverriddentrue
+}
+
+\AddToHook{shipout/background}{%
+  \MMRenderPageBackground
+  \ifMMBackgroundOpacityOverridden
+    \global\def\MMBackgroundOpacity{\DefaultBackgroundOpacity}%
+    \global\MMBackgroundOpacityOverriddenfalse
+  \fi
+}
+\makeatother

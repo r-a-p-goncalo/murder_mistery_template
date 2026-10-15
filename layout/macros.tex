@@ -80,7 +80,16 @@
 
 \newcommand{\NegativeReward}[1]{\NegativeRewardStyle{-#1}}
 
-\newcommand{\shortdescription}[1]{\paragraph{\MMStringDescription}#1}
+% Semantic content headings.  These keep character sheets, localized content,
+% and generated player packets aligned while allowing independent styling.
+\newcommand{\ObjectivesHeading}[1]{\subsubsection*{\ObjectivesHeadingStyle{#1}}}
+\newcommand{\LosingConditionsHeading}[1]{\subsubsection*{\LosingConditionsHeadingStyle{#1}}}
+\newcommand{\SecretsHeading}[1]{\subsubsection*{\SecretsHeadingStyle{#1}}}
+\newcommand{\ActionsHeading}[1]{\subsubsection*{\ActionsHeadingStyle{#1}}}
+\newcommand{\BackgroundHeading}[1]{\subsubsection*{\BackgroundHeadingStyle{#1}}}
+\newcommand{\DescriptionHeading}[1]{\paragraph{\DescriptionHeadingStyle{#1}}}
+
+\newcommand{\shortdescription}[1]{\DescriptionHeading{\MMStringDescription}#1}
 
 \newcommand{\GMNotes}[1]{\paragraph{\MMStringGMNotes}#1}
 % Keep headings that the generator needs to find language-neutral. Localized
