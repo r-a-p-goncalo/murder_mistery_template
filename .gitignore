@@ -8,6 +8,7 @@
 *.toc
 tmp/
 generated/
+/target/organized_characters/.compile_and_organize_manifest.json
 
 /config/characters.tex
 **/__pycache__/**

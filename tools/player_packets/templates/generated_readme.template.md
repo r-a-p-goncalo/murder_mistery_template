@@ -8,6 +8,6 @@ Run `python compile.py` from the repository root after editing the game sources.
 - `mystery_order.mmd` is an editable Mermaid graph of `\MysteryDependency` declarations; its SVG and TikZ companions render the same resolution order.
 - `character_collection.tex` is the player-safe character overview with each character's image and optional short description.
 - `space_photos.tex` is the gallery of supported images in `content/assets/space`; it is omitted when that folder has no images.
-- `players/<character-id>/player_packet.tex` is a self-contained, player-safe LaTeX document containing the public rules and only that character's sheet.
+- `players/<character-id>/player_packet_with_rules.tex` contains the public rules, character overview, and that player's detailed sheet. `player_packet_without_rules.tex` contains only its cover and that player's detailed sheet.
 
 The packets intentionally omit the relationship map, clues, mysteries, full background, and other character sheets. Edit `content/` and `config/`, never these generated files.

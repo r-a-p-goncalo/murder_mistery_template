@@ -336,8 +336,10 @@ def packet_tex(
     clues: list[Sheet],
     mysteries: list[Sheet],
     character_collection: str,
+    include_rules: bool,
+    include_character_collection: bool,
 ) -> str:
-    """Create a standalone snapshot with public rules and one sheet."""
+    """Create a standalone player snapshot with optional shared material."""
 
     entity_template = source_path(root, PLAYER_PACKET_ENTITY_TEMPLATE, language)
     declarations: list[str] = []
@@ -363,8 +365,8 @@ def packet_tex(
             "STYLE": read_text(source_path(root, "config/style.tex", language)).strip(),
             "GAME_CONFIG": read_text(source_path(root, "config/game.tex", language)).strip(),
             "ENTITY_DECLARATIONS": "\n".join(declarations),
-            "PUBLIC_RULES": player_safe_rules(root, language),
-            "CHARACTER_COLLECTION": character_collection,
+            "PUBLIC_RULES": player_safe_rules(root, language) if include_rules else "",
+            "CHARACTER_COLLECTION": character_collection if include_character_collection else "",
             "CHARACTER_SHEET": player_safe_character_sheet(character),
         },
     )
