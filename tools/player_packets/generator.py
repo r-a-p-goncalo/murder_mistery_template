@@ -34,6 +34,7 @@ from .rendering import (
 from .source import (
     CHARACTER_RE,
     GENERATED_BY,
+    PLAYER_PACKET_VARIANTS,
     SourceError,
     find_relationship_items,
     latex_to_plain,
@@ -164,10 +165,24 @@ def build(root: Path, output: Path, language: str = "en") -> dict[str, object]:
     owned_write(output / "README.md", generated_readme(root, language))
 
     for character in characters:
-        owned_write(
-            output / "players" / character.entity_id / "player_packet.tex",
-            packet_tex(root, language, character, characters, spaces, clues, mysteries, character_collection),
-        )
+        player_directory = output / "players" / character.entity_id
+        owned_unlink(player_directory / "player_packet.tex")
+        for variant, include_rules, include_character_collection in PLAYER_PACKET_VARIANTS:
+            owned_write(
+                player_directory / f"player_packet_{variant}.tex",
+                packet_tex(
+                    root,
+                    language,
+                    character,
+                    characters,
+                    spaces,
+                    clues,
+                    mysteries,
+                    character_collection,
+                    include_rules,
+                    include_character_collection,
+                ),
+            )
 
     return analysis
 

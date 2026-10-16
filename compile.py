@@ -9,7 +9,14 @@ import sys
 from pathlib import Path
 
 from tools.player_packets.generator import build
-from tools.player_packets.source import SourceError, owned_write, tex_path, validate_language, verify_language_pack
+from tools.player_packets.source import (
+    PLAYER_PACKET_VARIANTS,
+    SourceError,
+    owned_write,
+    tex_path,
+    validate_language,
+    verify_language_pack,
+)
 
 
 DEFAULT_ROOT = Path(__file__).resolve().parent
@@ -117,7 +124,10 @@ def main() -> int:
         return 1
 
     player_count = len(analysis["character_reference_counts"])
-    print(f"Generated {player_count} {language} player packets: {generated_dir / 'players'}")
+    print(
+        f"Generated {player_count} {language} player packets "
+        f"({len(PLAYER_PACKET_VARIANTS)} variants each): {generated_dir / 'players'}"
+    )
     print(f"Relationship analysis: {generated_dir / 'relationship_analysis.json'}")
     validation = analysis["validation"]
     validation_messages = {
@@ -137,11 +147,16 @@ def main() -> int:
         print("LaTeX compilation failed; generated assets were left in place for inspection.", file=sys.stderr)
         return main_result
 
-    player_sources = sorted((generated_dir / "players").glob("*/player_packet.tex"))
-    print(f"Compiling {len(player_sources)} player packets...")
+    player_sources = [
+        generated_dir / "players" / character["character_id"] / f"player_packet_{variant}.tex"
+        for character in analysis["character_reference_counts"]
+        for variant, *_ in PLAYER_PACKET_VARIANTS
+    ]
+    print(f"Compiling {len(player_sources)} player-packet PDFs...")
     for index, player_source in enumerate(player_sources, start=1):
         player_id = player_source.parent.name
-        print(f"  [{index}/{len(player_sources)}] {player_id}")
+        variant = player_source.stem.removeprefix("player_packet_")
+        print(f"  [{index}/{len(player_sources)}] {player_id} ({variant.replace('_', ' ')})")
         player_result = compile_document(arguments.latexmk, root, player_source, player_output_dir / player_id)
         if player_result != 0:
             print(f"Player-packet compilation failed for '{player_id}'.", file=sys.stderr)
