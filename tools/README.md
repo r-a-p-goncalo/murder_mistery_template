@@ -6,12 +6,12 @@ Run the complete English build from the repository root after changing `content/
 python compile.py
 ```
 
-Use `--language` to select a locale. Portuguese (Portugal) currently has a
-scaffolded pack with translated interface strings and fallback to the English
-authored files until their overlays are added:
+Use `--language` to select a locale. Portuguese (Portugal) includes complete
+translations of the character sheets, rules, background, clues, and GM material.
+Use the strict check to verify all required translation files are present:
 
 ```powershell
-python compile.py --language pt-PT
+python compile.py --language pt-PT --strict-language
 ```
 
 The build keeps derived files separate per locale: `generated/<locale>/`,

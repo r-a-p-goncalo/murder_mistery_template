@@ -1,21 +1,52 @@
-# Full-file overlays required before --strict-language can pass for pt-PT.
-# Keep the same path under languages/pt-PT/ and leave structural index files
-# in the default tree: their \MMInput calls will still select these overlays.
+# Complete Portuguese (Portugal) prose and presentation overlays.
+# Shared indices, macros, assets and configured personal names are language-neutral.
 strings.tex
 config/game.tex
-config/characters.tex
 content/background/common-background.tex
 content/background/complete-background.tex
 content/background/recent-background.tex
+content/characters/buttler.tex
+content/characters/enforcer.tex
 content/characters/example-character.tex
-content/clues/example-clue.tex
-content/game_components.tex
+content/characters/ghoul.tex
+content/characters/newcomer.tex
+content/characters/newcomerlover.tex
+content/characters/prevnewcomerlover.tex
+content/characters/supremacist.tex
+content/characters/traitor.tex
+content/characters/usurper.tex
+content/characters/vampirehead.tex
+content/clues/forbiddenpotion.tex
+content/clues/futritualleftovers.tex
+content/clues/hierarchy_page.tex
+content/clues/intercepted_messages_loc.tex
+content/clues/intercepted_messages_text.tex
+content/clues/missingmusic.tex
+content/clues/poisoned_wine.tex
+content/clues/rituals/futritualleftovers.tex
+content/clues/rituals/memritualleftovers.tex
+content/clues/rituals/stealritualleftovers.tex
+content/clues/rocks.tex
+content/clues/rulebook.tex
+content/clues/truthpotion.tex
+content/clues/truthseeing.tex
+content/clues/usurper_notes/binocular_notes.tex
+content/clues/usurper_notes/blood_key_notes.tex
+content/clues/usurper_notes/forbiden_potion_experiences.tex
+content/clues/usurper_notes/forbiden_potion_init_notes.tex
+content/clues/usurper_notes/password_notes.tex
+content/clues/usurper_notes/ritual_notes.tex
+content/clues/usurper_notes/truth_potion_notes.tex
+content/game_planning/atomic-facts.tex
 content/game_planning/game-plan.tex
-content/game_planning/mysteries.tex
+content/game_planning/gm-notes.tex
 content/game_planning/mockup-play.tex
+content/game_planning/mysteries.tex
 content/game_planning/relations-and-notes.tex
 content/general_rules.tex
 content/gm_rules.tex
 content/spaces/example-space.tex
 content/spacestudy/space_notes.tex
 content/spacestudy/space_study.tex
+tools/player_packets/templates/mystery_order_graph.template.svg
+tools/player_packets/templates/relationship_graph.template.svg

@@ -32,7 +32,14 @@ player-packet generator; translate their visible wording through `strings.tex`.
 Derived files and PDFs are namespaced by language: `generated/<locale>/`,
 `target/main/<locale>/`, and `target/players/<locale>/`.
 
-While a translation is in progress, fallbacks are intentional. Before calling
-it complete, run `python compile.py --language pt-PT --strict-language`.
-That command checks every path in the pack's `manifest.txt`; update that list
-when adding authored source files that need a full translation.
+The Portuguese (Portugal) pack translates all character sheets, public rules,
+background, clues, GM material, and graph labels. Personal names in
+`config/characters.tex`, structural index files, macros, and existing props are
+shared across languages. Ciphertext, puzzle answers, and passwords remain
+unchanged so they continue to match the physical clues.
+
+Run `python compile.py --language pt-PT --strict-language` to verify the pack
+and compile the main PDF and all player packets. The strict check covers every
+path in the pack's `manifest.txt`; update that list when adding authored source
+files that need a full translation. Other language packs may deliberately use
+fallbacks while their translations are in progress.
